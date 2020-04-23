@@ -4,341 +4,510 @@ namespace SpriteKind {
     export const EnemyProjectile = SpriteKind.create()
 }
 
+
+enum Direction { UP, LEFT, DOWN, RIGHT };
+
+class PlaneImages {
+    private readonly up: Image;
+    private readonly left: Image;
+    private readonly down: Image;
+    private readonly right: Image;
+
+    constructor(up: Image, left: Image, down: Image, right: Image) {
+        this.up = up;
+        this.left = left;
+        this.down = down;
+        this.right = right;
+    }
+
+    public getImage(direction: Direction): Image {
+        switch(direction) {
+            case Direction.UP: return this.up;
+            case Direction.LEFT: return this.left;
+            case Direction.DOWN: return this.down;
+            case Direction.RIGHT: return this.right;
+        }
+    }
+}
+
 interface EnemyPlane {
-    imgUp: Image;
-    imgLeft: Image;
-    imgDown: Image;
-    imgRight: Image;
+    getImages(): PlaneImages;
+    shoot(): void;
+    setDataNumber(key: string, value: number): void;
+    destroy(): void;
 }
 
-const greenPlane: EnemyPlane = {
-    imgUp: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . 9 9 9 9 9 9 . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 8 8 . . . . . . .
-        . . . . . 7 7 8 8 7 7 . . . . .
-        . 6 7 7 6 7 e 7 7 e 7 6 7 7 6 .
-        . . . 7 7 7 7 7 7 7 7 7 7 . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . 7 7 7 7 . . . . . .
-        . . . . 7 7 6 7 7 6 7 7 . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `,
-
-    imgLeft: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . 6 . . . . . . . .
-        . . . . . . . 7 . . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 6 7 . . . . 7 . .
-        . . . 9 . . 7 7 7 . . . . 7 . .
-        . . . 9 . . 7 e 7 . . . 7 6 . .
-        . . . 9 7 8 8 7 7 7 7 7 7 7 7 .
-        . . . 9 7 8 8 7 7 7 7 7 7 7 7 .
-        . . . 9 . . 7 e 7 . . . 7 6 . .
-        . . . 9 . . 7 7 7 . . . . 7 . .
-        . . . . . . . 6 7 . . . . 7 . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 7 . . . . . . . .
-        . . . . . . . 6 . . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `,
-    imgDown: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . 7 7 6 7 7 6 7 7 . . . .
-        . . . . . . 7 7 7 7 . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . 7 7 7 7 7 7 7 7 7 7 . . .
-        . 6 7 7 6 7 e 7 7 e 7 6 7 7 6 .
-        . . . . . 7 7 8 8 7 7 . . . . .
-        . . . . . . . 8 8 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . 9 9 9 9 9 9 . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `,
-    imgRight: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . 6 . . . . . . .
-        . . . . . . . . 7 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . 7 . . . . 7 6 . . . . . . .
-        . . 7 . . . . 7 7 7 . . 9 . . .
-        . . 6 7 . . . 7 e 7 . . 9 . . .
-        . 7 7 7 7 7 7 7 7 8 8 7 9 . . .
-        . 7 7 7 7 7 7 7 7 8 8 7 9 . . .
-        . . 6 7 . . . 7 e 7 . . 9 . . .
-        . . 7 . . . . 7 7 7 . . 9 . . .
-        . . 7 . . . . 7 6 . . . . . . .
-        . . . . . . . 7 7 . . . . . . .
-        . . . . . . . . 7 . . . . . . .
-        . . . . . . . . 6 . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `
+interface PlaneDefinition {
+    direction: Direction;
+    spriteKind: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
 }
 
-const grayPlane: EnemyPlane = {
-    imgUp: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . 6 6 6 b . . . . . .
-        . . . . . . 6 8 8 b . . . . . .
-        . . . . . 6 6 8 8 6 b . . . . .
-        . . . . . 6 6 8 8 6 b . . . . .
-        . . . . 6 6 6 6 6 6 6 b . . . .
-        . . . . 6 6 6 6 6 6 6 b . . . .
-        . . . 6 6 6 6 6 6 6 6 6 b . . .
-        . . . 6 6 6 6 6 6 6 6 6 b . . .
-        . . 6 6 6 6 6 6 6 6 6 6 6 b . .
-        . 6 6 6 6 6 6 6 6 6 6 6 6 b b .
-        . . . 2 4 2 . . . . 2 4 2 . . .
-    `,
-    imgLeft: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . 6 .
-        . . . . . . . . . . . . . 6 6 .
-        . . . . . . . . . . . 6 6 6 6 2
-        . . . . . . . . . 6 6 6 6 6 6 4
-        . . . . . . . 6 6 6 6 6 6 6 6 2
-        . . . . . 6 6 6 6 6 6 6 6 6 6 .
-        . . 6 6 6 6 8 8 8 6 6 6 6 6 6 .
-        . . b b b 6 8 8 8 6 6 6 6 6 6 .
-        . . . . . b b 6 6 6 6 6 6 6 6 .
-        . . . . . . . b b 6 6 6 6 6 6 2
-        . . . . . . . . . b b 6 6 6 6 4
-        . . . . . . . . . . . b b 6 6 2
-        . . . . . . . . . . . . . b b .
-        . . . . . . . . . . . . . . b .
-        . . . . . . . . . . . . . . . .
-    `,
-    imgDown: img`
-        . . . 2 4 2 . . . . 2 4 2 . . .
-        . 6 6 6 6 6 6 6 6 6 6 6 6 b b .
-        . . 6 6 6 6 6 6 6 6 6 6 6 b . .
-        . . . 6 6 6 6 6 6 6 6 6 b . . .
-        . . . 6 6 6 6 6 6 6 6 6 b . . .
-        . . . . 6 6 6 6 6 6 6 b . . . .
-        . . . . 6 6 6 6 6 6 6 b . . . .
-        . . . . . 6 6 8 8 6 b . . . . .
-        . . . . . 6 6 8 8 6 b . . . . .
-        . . . . . . 6 8 8 b . . . . . .
-        . . . . . . 6 6 6 b . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . . 6 b . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `,
-    imgRight: img`
-        . . . . . . . . . . . . . . . .
-        . 6 . . . . . . . . . . . . . .
-        . 6 6 . . . . . . . . . . . . .
-        2 6 6 6 6 . . . . . . . . . . .
-        4 6 6 6 6 6 6 . . . . . . . . .
-        2 6 6 6 6 6 6 6 6 . . . . . . .
-        . 6 6 6 6 6 6 6 6 6 6 . . . . .
-        . 6 6 6 6 6 6 8 8 8 6 6 6 6 . .
-        . 6 6 6 6 6 6 8 8 8 6 b b b . .
-        . 6 6 6 6 6 6 6 6 b b . . . . .
-        2 6 6 6 6 6 6 b b . . . . . . .
-        4 6 6 6 6 b b . . . . . . . . .
-        2 6 6 b b . . . . . . . . . . .
-        . b b . . . . . . . . . . . . .
-        . b . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `
-}
-const redPlane: EnemyPlane = {
-    imgUp: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . 9 9 9 8 9 9 9 . . . .
-        . . . . . . 2 2 2 2 2 . . . . .
-        . . . . . 2 2 2 2 2 2 2 . . . .
-        . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
-        . 4 3 3 3 3 3 9 8 c 2 2 2 2 2 c
-        . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
-        . . . 4 4 3 3 3 2 2 2 2 c c . .
-        . . . . . 4 4 3 2 2 c c . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . 2 2 2 c 2 2 2 . . . .
-        . . . . . . . . 2 . . . . . . .
-        . . . . . . . . 2 . . . . . . .
-    `,
-    imgLeft: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . 4 4 4 . . . . . . . .
-        . . . . . 4 3 4 . . . . . . . .
-        . . . . . 3 3 3 4 . . . . . . .
-        . . . . . 3 3 3 4 . . . . . . .
-        . . 9 . 2 3 3 3 3 4 . . . 2 . .
-        . . 9 2 2 3 3 3 3 4 . . . 2 . .
-        . . 9 2 2 9 9 9 3 3 2 2 2 2 . .
-        . . 8 2 2 8 8 8 2 2 2 2 2 c 2 2
-        . . 9 2 2 c c c 2 2 2 2 2 2 . .
-        . . 9 2 2 2 2 2 2 c . . . 2 . .
-        . . 9 . 2 2 2 2 2 c . . . 2 . .
-        . . . . . 2 2 2 c . . . . . . .
-        . . . . . 2 2 2 c . . . . . . .
-        . . . . . c 2 c . . . . . . . .
-        . . . . . c c c . . . . . . . .
-    `,
-    imgDown: img`
-        . . . . . . . . 2 . . . . . . .
-        . . . . . . . . 2 . . . . . . .
-        . . . . . 2 2 2 c 2 2 2 . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . . . 2 2 2 . . . . . .
-        . . . . . 4 4 3 2 2 c c . . . .
-        . . . 4 4 3 3 3 2 2 2 2 c c . .
-        . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
-        . 4 3 3 3 3 3 9 8 c 2 2 2 2 2 c
-        . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
-        . . . . . 2 2 2 2 2 2 2 . . . .
-        . . . . . . 2 2 2 2 2 . . . . .
-        . . . . . 9 9 9 8 9 9 9 . . . .
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . .
-    `,
-    imgRight: img`
-        . . . . . . . . . . . . . . . .
-        . . . . . . . . 4 4 4 . . . . .
-        . . . . . . . . 4 3 4 . . . . .
-        . . . . . . . 4 3 3 3 . . . . .
-        . . . . . . . 4 3 3 3 . . . . .
-        . . 2 . . . 4 3 3 3 3 2 . 9 . .
-        . . 2 . . . 4 3 3 3 3 2 2 9 . .
-        . . 2 2 2 2 3 3 9 9 9 2 2 9 . .
-        2 2 c 2 2 2 2 2 8 8 8 2 2 8 . .
-        . . 2 2 2 2 2 2 c c c 2 2 9 . .
-        . . 2 . . . c 2 2 2 2 2 2 9 . .
-        . . 2 . . . c 2 2 2 2 2 . 9 . .
-        . . . . . . . c 2 2 2 . . . . .
-        . . . . . . . c 2 2 2 . . . . .
-        . . . . . . . . c 2 c . . . . .
-        . . . . . . . . c c c . . . . .
-    `
-}
-const bigPlane: EnemyPlane = {
-    imgUp: img`
-        . . . . . . . . . . . 2 . . . . . . . . . . . .
-        . . . . . . . . . . 2 7 2 . . . . . . . . . . .
-        . . . . 1 9 9 9 b . 7 2 7 . 1 9 9 9 b . . . . .
-        . . . . . . 7 . . . 2 7 2 . . . 7 . . . . . . .
-        . . . . . 7 7 7 7 7 7 7 7 7 7 7 7 7 . . . . . .
-        d 7 7 7 7 7 d d d d 7 7 7 b b b b 7 7 7 7 7 7 b
-        . d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 b b b b .
-        . . . . d d d 7 7 7 7 7 7 7 7 7 b b b . . . . .
-        . . . . . . . d d 7 2 7 2 7 b b . . . . . . . .
-        . . . . . . . . . d 7 2 7 b . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . b b b 7 7 7 b b b . . . . . . . .
-        . . . . . . . 7 7 7 7 7 7 7 7 7 . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . . 2 . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . .
-    `,
-    imgLeft: img`
-        . . . . . d . . . . . . . . . . . . . .
-        . . . . . 7 d . . . . . . . . . . . . .
-        . . . . . 7 7 . . . . . . . . . . . . .
-        . . . . . 7 7 . . . . . . . . . . . . .
-        . . b . . 7 7 d . . . . . . . . . . . .
-        . . 9 . 7 7 7 7 . . . . . . . . . . . .
-        . . 9 7 7 d 7 7 . . . . . . . . . . . .
-        . . 9 . 7 d 7 7 d . . . . . . b 7 . . .
-        . . 1 . 7 d 7 7 7 . . . . . . b 7 . . .
-        . . . . 7 d 7 7 7 d . . . . . b 7 . . .
-        . 2 7 2 7 7 7 7 2 7 7 7 7 7 7 7 7 7 . .
-        2 7 2 7 7 7 7 7 7 2 7 7 7 7 7 7 7 7 2 .
-        . 2 7 2 7 7 7 7 2 7 7 7 7 7 7 7 7 7 . .
-        . . . . 7 b 7 7 7 b . . . . . b 7 . . .
-        . . b . 7 b 7 7 7 . . . . . . b 7 . . .
-        . . 9 . 7 b 7 7 b . . . . . . b 7 . . .
-        . . 9 7 7 b 7 7 . . . . . . . . . . . .
-        . . 9 . 7 7 7 7 . . . . . . . . . . . .
-        . . 1 . . 7 7 b . . . . . . . . . . . .
-        . . . . . 7 7 . . . . . . . . . . . . .
-        . . . . . 7 7 . . . . . . . . . . . . .
-        . . . . . 7 7 . . . . . . . . . . . . .
-        . . . . . 7 b . . . . . . . . . . . . .
-        . . . . . b . . . . . . . . . . . . . .
-    `,
-    imgDown: img`
-        . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . 2 . . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . 7 7 7 7 7 7 7 7 7 . . . . . . . .
-        . . . . . . . b b b 7 7 7 b b b . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . . 7 7 7 . . . . . . . . . . .
-        . . . . . . . . . d 7 2 7 b . . . . . . . . . .
-        . . . . . . . d 7 7 2 7 2 7 7 b . . . . . . . .
-        . . . . d 7 7 7 7 7 7 7 7 7 7 7 7 7 b . . . . .
-        . d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 b .
-        d 7 7 7 7 7 d d d d 7 7 7 b b b b 7 7 7 7 7 7 b
-        . . . . . 7 7 7 7 7 7 7 7 7 7 7 7 7 . . . . . .
-        . . . . . . 7 . . . 2 7 2 . . . 7 . . . . . . .
-        . . . . b d d d 1 . 7 2 7 . b d d d 1 . . . . .
-        . . . . . . . . . . 2 7 2 . . . . . . . . . . .
-        . . . . . . . . . . . 2 . . . . . . . . . . . .
-    `,
-    imgRight: img`
-        . . . . . . . . . . . . . . d . . . . .
-        . . . . . . . . . . . . . d 7 . . . . .
-        . . . . . . . . . . . . . 7 7 . . . . .
-        . . . . . . . . . . . . . 7 7 . . . . .
-        . . . . . . . . . . . . d 7 7 . . 1 . .
-        . . . . . . . . . . . . 7 7 7 7 . 9 . .
-        . . . . . . . . . . . . 7 7 d 7 7 9 . .
-        . . . 7 b . . . . . . d 7 7 d 7 . 9 . .
-        . . . 7 b . . . . . . 7 7 7 d 7 . b . .
-        . . . 7 b . . . . . d 7 7 7 d 7 . . . .
-        . . 7 7 7 7 7 7 7 7 7 2 7 7 7 7 2 7 2 .
-        . 2 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 2 7 2
-        . . 7 7 7 7 7 7 7 7 7 2 7 7 7 7 2 7 2 .
-        . . . 7 b . . . . . b 7 7 7 b 7 . . . .
-        . . . 7 b . . . . . . 7 7 7 b 7 . 1 . .
-        . . . 7 b . . . . . . b 7 7 b 7 . 9 . .
-        . . . . . . . . . . . . 7 7 b 7 7 9 . .
-        . . . . . . . . . . . . 7 7 7 7 . 9 . .
-        . . . . . . . . . . . . b 7 7 . . b . .
-        . . . . . . . . . . . . . 7 7 . . . . .
-        . . . . . . . . . . . . . 7 7 . . . . .
-        . . . . . . . . . . . . . 7 7 . . . . .
-        . . . . . . . . . . . . . b 7 . . . . .
-        . . . . . . . . . . . . . . b . . . . .
-    `
+abstract class Plane  {
+    protected readonly sprite: Sprite;
+
+    constructor(image: Image, def: PlaneDefinition) {
+        this.sprite = sprites.create(image, def.spriteKind);
+        this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
+        this.sprite.setPosition(def.x, def.y)
+        this.sprite.setVelocity(def.vx, def.vy)
+        
+        this.sprite.onDestroyed(function () {
+            //console.log("desssstroy");
+            this.destroy();
+        })
+    }
+
+    public setDataNumber(key: string, value: number) {
+        sprites.setDataNumber(this.sprite, key, value);
+    }
+
+    public destroy() {
+        // override in derived classes
+    }
 }
 
-function randomPlane() {
-    switch (Math.randomRange(0, 2)) {
-        case 0: return greenPlane
-        case 1: return redPlane
-        default: return grayPlane
+class GreenPlane extends Plane implements EnemyPlane {
+    public static readonly images: PlaneImages = new PlaneImages(
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . 9 9 9 9 9 9 . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 8 8 . . . . . . .
+            . . . . . 7 7 8 8 7 7 . . . . .
+            . 6 7 7 6 7 e 7 7 e 7 6 7 7 6 .
+            . . . 7 7 7 7 7 7 7 7 7 7 . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . 7 7 7 7 . . . . . .
+            . . . . 7 7 6 7 7 6 7 7 . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . 6 . . . . . . . .
+            . . . . . . . 7 . . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 6 7 . . . . 7 . .
+            . . . 9 . . 7 7 7 . . . . 7 . .
+            . . . 9 . . 7 e 7 . . . 7 6 . .
+            . . . 9 7 8 8 7 7 7 7 7 7 7 7 .
+            . . . 9 7 8 8 7 7 7 7 7 7 7 7 .
+            . . . 9 . . 7 e 7 . . . 7 6 . .
+            . . . 9 . . 7 7 7 . . . . 7 . .
+            . . . . . . . 6 7 . . . . 7 . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 7 . . . . . . . .
+            . . . . . . . 6 . . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . 7 7 6 7 7 6 7 7 . . . .
+            . . . . . . 7 7 7 7 . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . 7 7 7 7 7 7 7 7 7 7 . . .
+            . 6 7 7 6 7 e 7 7 e 7 6 7 7 6 .
+            . . . . . 7 7 8 8 7 7 . . . . .
+            . . . . . . . 8 8 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . 9 9 9 9 9 9 . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . 6 . . . . . . .
+            . . . . . . . . 7 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . 7 . . . . 7 6 . . . . . . .
+            . . 7 . . . . 7 7 7 . . 9 . . .
+            . . 6 7 . . . 7 e 7 . . 9 . . .
+            . 7 7 7 7 7 7 7 7 8 8 7 9 . . .
+            . 7 7 7 7 7 7 7 7 8 8 7 9 . . .
+            . . 6 7 . . . 7 e 7 . . 9 . . .
+            . . 7 . . . . 7 7 7 . . 9 . . .
+            . . 7 . . . . 7 6 . . . . . . .
+            . . . . . . . 7 7 . . . . . . .
+            . . . . . . . . 7 . . . . . . .
+            . . . . . . . . 6 . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `
+    );
+
+    constructor(def: PlaneDefinition) {
+        super(GreenPlane.images.getImage(def.direction), def);
+    }
+
+    public getImages() {
+        return GreenPlane.images;
+    }
+
+    public shoot() {
+        // does not shoot
+    }
+}
+
+class RedPlane extends Plane implements EnemyPlane {
+    static readonly images: PlaneImages = new PlaneImages(
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . 9 9 9 8 9 9 9 . . . .
+            . . . . . . 2 2 2 2 2 . . . . .
+            . . . . . 2 2 2 2 2 2 2 . . . .
+            . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
+            . 4 3 3 3 3 3 9 8 c 2 2 2 2 2 c
+            . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
+            . . . 4 4 3 3 3 2 2 2 2 c c . .
+            . . . . . 4 4 3 2 2 c c . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . 2 2 2 c 2 2 2 . . . .
+            . . . . . . . . 2 . . . . . . .
+            . . . . . . . . 2 . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . 4 4 4 . . . . . . . .
+            . . . . . 4 3 4 . . . . . . . .
+            . . . . . 3 3 3 4 . . . . . . .
+            . . . . . 3 3 3 4 . . . . . . .
+            . . 9 . 2 3 3 3 3 4 . . . 2 . .
+            . . 9 2 2 3 3 3 3 4 . . . 2 . .
+            . . 9 2 2 9 9 9 3 3 2 2 2 2 . .
+            . . 8 2 2 8 8 8 2 2 2 2 2 c 2 2
+            . . 9 2 2 c c c 2 2 2 2 2 2 . .
+            . . 9 2 2 2 2 2 2 c . . . 2 . .
+            . . 9 . 2 2 2 2 2 c . . . 2 . .
+            . . . . . 2 2 2 c . . . . . . .
+            . . . . . 2 2 2 c . . . . . . .
+            . . . . . c 2 c . . . . . . . .
+            . . . . . c c c . . . . . . . .
+        `,
+        img`
+            . . . . . . . . 2 . . . . . . .
+            . . . . . . . . 2 . . . . . . .
+            . . . . . 2 2 2 c 2 2 2 . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . . . 2 2 2 . . . . . .
+            . . . . . 4 4 3 2 2 c c . . . .
+            . . . 4 4 3 3 3 2 2 2 2 c c . .
+            . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
+            . 4 3 3 3 3 3 9 8 c 2 2 2 2 2 c
+            . 4 4 3 3 3 3 9 8 c 2 2 2 2 c c
+            . . . . . 2 2 2 2 2 2 2 . . . .
+            . . . . . . 2 2 2 2 2 . . . . .
+            . . . . . 9 9 9 8 9 9 9 . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . 4 4 4 . . . . .
+            . . . . . . . . 4 3 4 . . . . .
+            . . . . . . . 4 3 3 3 . . . . .
+            . . . . . . . 4 3 3 3 . . . . .
+            . . 2 . . . 4 3 3 3 3 2 . 9 . .
+            . . 2 . . . 4 3 3 3 3 2 2 9 . .
+            . . 2 2 2 2 3 3 9 9 9 2 2 9 . .
+            2 2 c 2 2 2 2 2 8 8 8 2 2 8 . .
+            . . 2 2 2 2 2 2 c c c 2 2 9 . .
+            . . 2 . . . c 2 2 2 2 2 2 9 . .
+            . . 2 . . . c 2 2 2 2 2 . 9 . .
+            . . . . . . . c 2 2 2 . . . . .
+            . . . . . . . c 2 2 2 . . . . .
+            . . . . . . . . c 2 c . . . . .
+            . . . . . . . . c c c . . . . .
+        `
+    );
+
+    constructor(def: PlaneDefinition) {
+        super(RedPlane.images.getImage(def.direction), def);
+    }
+
+    public getImages(): PlaneImages {
+        return RedPlane.images;
+    }
+
+    public shoot(): void {
+        // does not shoot
+    }
+}
+
+class GrayPlane extends Plane implements EnemyPlane {
+    private static readonly projectileImage: Image = img`
+        d f d
+        f 2 f
+        d f d
+    `;
+    
+    public static readonly images: PlaneImages = new PlaneImages(
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . 6 6 6 b . . . . . .
+            . . . . . . 6 8 8 b . . . . . .
+            . . . . . 6 6 8 8 6 b . . . . .
+            . . . . . 6 6 8 8 6 b . . . . .
+            . . . . 6 6 6 6 6 6 6 b . . . .
+            . . . . 6 6 6 6 6 6 6 b . . . .
+            . . . 6 6 6 6 6 6 6 6 6 b . . .
+            . . . 6 6 6 6 6 6 6 6 6 b . . .
+            . . 6 6 6 6 6 6 6 6 6 6 6 b . .
+            . 6 6 6 6 6 6 6 6 6 6 6 6 b b .
+            . . . 2 4 2 . . . . 2 4 2 . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . 6 .
+            . . . . . . . . . . . . . 6 6 .
+            . . . . . . . . . . . 6 6 6 6 2
+            . . . . . . . . . 6 6 6 6 6 6 4
+            . . . . . . . 6 6 6 6 6 6 6 6 2
+            . . . . . 6 6 6 6 6 6 6 6 6 6 .
+            . . 6 6 6 6 8 8 8 6 6 6 6 6 6 .
+            . . b b b 6 8 8 8 6 6 6 6 6 6 .
+            . . . . . b b 6 6 6 6 6 6 6 6 .
+            . . . . . . . b b 6 6 6 6 6 6 2
+            . . . . . . . . . b b 6 6 6 6 4
+            . . . . . . . . . . . b b 6 6 2
+            . . . . . . . . . . . . . b b .
+            . . . . . . . . . . . . . . b .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . 2 4 2 . . . . 2 4 2 . . .
+            . 6 6 6 6 6 6 6 6 6 6 6 6 b b .
+            . . 6 6 6 6 6 6 6 6 6 6 6 b . .
+            . . . 6 6 6 6 6 6 6 6 6 b . . .
+            . . . 6 6 6 6 6 6 6 6 6 b . . .
+            . . . . 6 6 6 6 6 6 6 b . . . .
+            . . . . 6 6 6 6 6 6 6 b . . . .
+            . . . . . 6 6 8 8 6 b . . . . .
+            . . . . . 6 6 8 8 6 b . . . . .
+            . . . . . . 6 8 8 b . . . . . .
+            . . . . . . 6 6 6 b . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . . 6 b . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . .
+            . 6 . . . . . . . . . . . . . .
+            . 6 6 . . . . . . . . . . . . .
+            2 6 6 6 6 . . . . . . . . . . .
+            4 6 6 6 6 6 6 . . . . . . . . .
+            2 6 6 6 6 6 6 6 6 . . . . . . .
+            . 6 6 6 6 6 6 6 6 6 6 . . . . .
+            . 6 6 6 6 6 6 8 8 8 6 6 6 6 . .
+            . 6 6 6 6 6 6 8 8 8 6 b b b . .
+            . 6 6 6 6 6 6 6 6 b b . . . . .
+            2 6 6 6 6 6 6 b b . . . . . . .
+            4 6 6 6 6 b b . . . . . . . . .
+            2 6 6 b b . . . . . . . . . . .
+            . b b . . . . . . . . . . . . .
+            . b . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+        `
+    );
+
+    constructor(def: PlaneDefinition) {
+        super(GrayPlane.images.getImage(def.direction), def);
+        this.shoot();
+    }
+
+    public getImages(): PlaneImages {
+        return GrayPlane.images;
+    }
+
+    public shoot(): void {
+        console.log(this.sprite);
+        let vx =  50 * Math.sign(this.sprite.vx);
+        let vy =  50 * Math.sign(this.sprite.vy);
+        let ax = 200 * Math.sign(this.sprite.vx);
+        let ay = 200 * Math.sign(this.sprite.vy);
+        if (this.sprite.vx !== 0) {
+            vy = 0;
+            ay = 0;
+        } else if (this.sprite.vy !== 0) {
+            vx = 0;
+            ax = 0;
+        }
+        const projectile = sprites.createProjectileFromSprite(GrayPlane.projectileImage, this.sprite, vx, vy)
+        projectile.ax = ax;
+        projectile.ay = ay;
+        projectile.setKind(SpriteKind.EnemyProjectile)
+    }
+}
+
+class BigPlane extends Plane implements EnemyPlane {
+    private static readonly projectileImage: Image = img`
+        5 2 5
+        2 4 2
+        5 2 5
+    `;
+    public static readonly images: PlaneImages = new PlaneImages(
+        img`
+            . . . . . . . . . . . 2 . . . . . . . . . . . .
+            . . . . . . . . . . 2 7 2 . . . . . . . . . . .
+            . . . . 1 9 9 9 b . 7 2 7 . 1 9 9 9 b . . . . .
+            . . . . . . 7 . . . 2 7 2 . . . 7 . . . . . . .
+            . . . . . 7 7 7 7 7 7 7 7 7 7 7 7 7 . . . . . .
+            d 7 7 7 7 7 d d d d 7 7 7 b b b b 7 7 7 7 7 7 b
+            . d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 b b b b .
+            . . . . d d d 7 7 7 7 7 7 7 7 7 b b b . . . . .
+            . . . . . . . d d 7 2 7 2 7 b b . . . . . . . .
+            . . . . . . . . . d 7 2 7 b . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . b b b 7 7 7 b b b . . . . . . . .
+            . . . . . . . 7 7 7 7 7 7 7 7 7 . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . . 2 . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . d . . . . . . . . . . . . . .
+            . . . . . 7 d . . . . . . . . . . . . .
+            . . . . . 7 7 . . . . . . . . . . . . .
+            . . . . . 7 7 . . . . . . . . . . . . .
+            . . b . . 7 7 d . . . . . . . . . . . .
+            . . 9 . 7 7 7 7 . . . . . . . . . . . .
+            . . 9 7 7 d 7 7 . . . . . . . . . . . .
+            . . 9 . 7 d 7 7 d . . . . . . b 7 . . .
+            . . 1 . 7 d 7 7 7 . . . . . . b 7 . . .
+            . . . . 7 d 7 7 7 d . . . . . b 7 . . .
+            . 2 7 2 7 7 7 7 2 7 7 7 7 7 7 7 7 7 . .
+            2 7 2 7 7 7 7 7 7 2 7 7 7 7 7 7 7 7 2 .
+            . 2 7 2 7 7 7 7 2 7 7 7 7 7 7 7 7 7 . .
+            . . . . 7 b 7 7 7 b . . . . . b 7 . . .
+            . . b . 7 b 7 7 7 . . . . . . b 7 . . .
+            . . 9 . 7 b 7 7 b . . . . . . b 7 . . .
+            . . 9 7 7 b 7 7 . . . . . . . . . . . .
+            . . 9 . 7 7 7 7 . . . . . . . . . . . .
+            . . 1 . . 7 7 b . . . . . . . . . . . .
+            . . . . . 7 7 . . . . . . . . . . . . .
+            . . . . . 7 7 . . . . . . . . . . . . .
+            . . . . . 7 7 . . . . . . . . . . . . .
+            . . . . . 7 b . . . . . . . . . . . . .
+            . . . . . b . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . 2 . . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . 7 7 7 7 7 7 7 7 7 . . . . . . . .
+            . . . . . . . b b b 7 7 7 b b b . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . . 7 7 7 . . . . . . . . . . .
+            . . . . . . . . . d 7 2 7 b . . . . . . . . . .
+            . . . . . . . d 7 7 2 7 2 7 7 b . . . . . . . .
+            . . . . d 7 7 7 7 7 7 7 7 7 7 7 7 7 b . . . . .
+            . d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 b .
+            d 7 7 7 7 7 d d d d 7 7 7 b b b b 7 7 7 7 7 7 b
+            . . . . . 7 7 7 7 7 7 7 7 7 7 7 7 7 . . . . . .
+            . . . . . . 7 . . . 2 7 2 . . . 7 . . . . . . .
+            . . . . b d d d 1 . 7 2 7 . b d d d 1 . . . . .
+            . . . . . . . . . . 2 7 2 . . . . . . . . . . .
+            . . . . . . . . . . . 2 . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . d . . . . .
+            . . . . . . . . . . . . . d 7 . . . . .
+            . . . . . . . . . . . . . 7 7 . . . . .
+            . . . . . . . . . . . . . 7 7 . . . . .
+            . . . . . . . . . . . . d 7 7 . . 1 . .
+            . . . . . . . . . . . . 7 7 7 7 . 9 . .
+            . . . . . . . . . . . . 7 7 d 7 7 9 . .
+            . . . 7 b . . . . . . d 7 7 d 7 . 9 . .
+            . . . 7 b . . . . . . 7 7 7 d 7 . b . .
+            . . . 7 b . . . . . d 7 7 7 d 7 . . . .
+            . . 7 7 7 7 7 7 7 7 7 2 7 7 7 7 2 7 2 .
+            . 2 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 2 7 2
+            . . 7 7 7 7 7 7 7 7 7 2 7 7 7 7 2 7 2 .
+            . . . 7 b . . . . . b 7 7 7 b 7 . . . .
+            . . . 7 b . . . . . . 7 7 7 b 7 . 1 . .
+            . . . 7 b . . . . . . b 7 7 b 7 . 9 . .
+            . . . . . . . . . . . . 7 7 b 7 7 9 . .
+            . . . . . . . . . . . . 7 7 7 7 . 9 . .
+            . . . . . . . . . . . . b 7 7 . . b . .
+            . . . . . . . . . . . . . 7 7 . . . . .
+            . . . . . . . . . . . . . 7 7 . . . . .
+            . . . . . . . . . . . . . 7 7 . . . . .
+            . . . . . . . . . . . . . b 7 . . . . .
+            . . . . . . . . . . . . . . b . . . . .
+        `
+    );
+
+    private readonly interval: number;
+
+    constructor(def: PlaneDefinition) {
+        super(BigPlane.images.getImage(def.direction), def);
+        this.shoot();
+        this.interval = setInterval(() => {
+            this.shoot();
+        }, 1200);
+    }
+
+    public getImages(): PlaneImages {
+        return BigPlane.images;
+    }
+
+    public shoot(): void {
+        const projectile = sprites.createProjectileFromSprite(BigPlane.projectileImage, this.sprite, 0, 70)
+        projectile.setKind(SpriteKind.EnemyProjectile)
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+    }
+}
+
+class EnemyPlanes {
+    public static createRedPlane(def: PlaneDefinition): RedPlane {
+        return new RedPlane(def);
+    }
+    public static createGreenPlane(def: PlaneDefinition): GreenPlane {
+        return new GreenPlane(def);
+    }
+    public static createGrayPlane(def: PlaneDefinition): GrayPlane {
+        return new GrayPlane(def);
+    }
+    public static createBigPlane(def: PlaneDefinition): BigPlane {
+        return new BigPlane(def);
+    }
+
+    public static randomPlaneFactory(): { (def: PlaneDefinition): EnemyPlane} {
+        switch (Math.randomRange(0, 2)) {
+            case 0: return (def: PlaneDefinition) => EnemyPlanes.createRedPlane(def);
+            case 1: return (def: PlaneDefinition) => EnemyPlanes.createGreenPlane(def)
+            default: return (def: PlaneDefinition) => EnemyPlanes.createGrayPlane(def)
+        }
     }
 }
 
@@ -360,13 +529,13 @@ function shoot() {
     }
 }
 
-function gotHit(player2: Sprite, otherSprite: Sprite) {
+function gotHit(player: Sprite, otherSprite: Sprite) {
     if (weaponLevel > 1) {
-        weaponLevel += 0 - 1
+        weaponLevel -= 1
     } else {
         info.changeLifeBy(-1)
     }
-    player2.startEffect(effects.spray, 200)
+    player.startEffect(effects.spray, 200)
     otherSprite.destroy(effects.fire, 100)
 }
 
@@ -397,19 +566,6 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, oth
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (player2, otherSprite) {
     gotHit(player2, otherSprite)
-})
-
-
-game.onUpdateInterval(1200, function () {
-    sprites.allOfKind(SpriteKind.BigEnemy).forEach(function (enemy: Sprite, index: number) {
-        const projectile = sprites.createProjectileFromSprite(img`
-            5 2 5
-            2 4 2
-            5 2 5
-        `, enemy, 0, 70)
-        projectile.setKind(SpriteKind.EnemyProjectile)
-
-    })
 })
 
 game.onUpdateInterval(5000, function () {
@@ -452,14 +608,21 @@ game.onUpdateInterval(5000, function () {
         island.setVelocity(0, 5)
         island.setFlag(SpriteFlag.Ghost, true)
         island.z = -2
+        island.setFlag(SpriteFlag.AutoDestroy, true);
     }
 })
 
 game.onUpdateInterval(5000, function () {
-    const enemy = sprites.create(bigPlane.imgDown, SpriteKind.BigEnemy)
-    enemy.setVelocity(0, 20)
-    enemy.setPosition(Math.randomRange(10, screen.width - 10), 0)
-    sprites.setDataNumber(enemy, "hits", 3)
+    const plane = EnemyPlanes.createBigPlane({
+        direction: Direction.DOWN,
+        spriteKind: SpriteKind.BigEnemy,
+        x: Math.randomRange(10, screen.width - 10),
+        y: 0,
+        vx: 0,
+        vy: 20
+    });
+
+    plane.setDataNumber("hits", 3)
 })
 
 game.onUpdateInterval(3000, function () {
@@ -501,6 +664,7 @@ game.onUpdateInterval(3000, function () {
     cloud.setVelocity(0, Math.randomRange(20, 50))
     cloud.setFlag(SpriteFlag.Ghost, true)
     cloud.z = -1
+    cloud.setFlag(SpriteFlag.AutoDestroy, true);
 })
 
 game.onUpdateInterval(3000, function () {
@@ -526,36 +690,52 @@ game.onUpdateInterval(3000, function () {
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     shoot()
 })
-game.onUpdateInterval(400, function () {
+game.onUpdateInterval(150, function () {
     if (controller.A.isPressed()) {
         shoot();
     }
 })
 
 game.onUpdateInterval(1000, function () {
-    const currentEnemy: EnemyPlane = randomPlane()
     const  x = Math.randomRange(7, scene.screenWidth())
     const  y = Math.randomRange(7, scene.screenHeight() - 30)
-    const vx = Math.randomRange(50, 90)
-    const vy = Math.randomRange(50, 90)
+    const vx = Math.randomRange(50, 70)
+    const vy = Math.randomRange(50, 70)
     const side = Math.randomRange(0, 2)
+    const planeFactory = EnemyPlanes.randomPlaneFactory();
+
     if (side == 0) {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            const enemy = sprites.create(currentEnemy.imgDown, SpriteKind.Enemy)
-            enemy.setPosition(x, Index * -15)
-            enemy.setVelocity(0, vy)
+            planeFactory({
+                direction: Direction.DOWN,
+                spriteKind: SpriteKind.Enemy,
+                x: x,
+                y: Index * -15,
+                vx: 0,
+                vy: vy
+            });
         }
     } else if (side == 1) {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            const enemy = sprites.create(currentEnemy.imgLeft, SpriteKind.Enemy)
-            enemy.setPosition(scene.screenWidth() + Index * 15, y)
-            enemy.setVelocity(-vx, 0)
+            planeFactory({
+                direction: Direction.LEFT,
+                spriteKind: SpriteKind.Enemy,
+                x: scene.screenWidth() + Index * 15,
+                y: y,
+                vx: -vx,
+                vy: 0
+            });
         }
     } else {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            const enemy = sprites.create(currentEnemy.imgRight, SpriteKind.Enemy)
-            enemy.setPosition(Index * -15, y)
-            enemy.setVelocity(vx, 0)
+            planeFactory({
+                direction: Direction.RIGHT,
+                spriteKind: SpriteKind.Enemy,
+                x: Index * -15,
+                y: y,
+                vx: vx,
+                vy: 0
+            });
         }
     }
 })
