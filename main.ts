@@ -34,7 +34,7 @@ interface EnemyPlane {
     destroy(): void;
     getSprite(): Sprite;
     getScore(): number;
-    gotHit(projectile: Sprite): void;
+    gotHitBy(projectile: Sprite): void;
 }
 
 interface PlaneDefinition {
@@ -68,7 +68,7 @@ abstract class Plane  {
         return 10;
     }
     
-    public gotHit(projectile: Sprite): void {
+    public gotHitBy(projectile: Sprite): void {
         this.remainingHits -= 1;
         projectile.destroy();
         if (this.remainingHits == 0) {
@@ -344,7 +344,6 @@ class GrayPlane extends Plane implements EnemyPlane {
     }
 
     public shoot(): void {
-        console.log(this.sprite);
         let vx =  50 * Math.sign(this.sprite.vx);
         let vy =  50 * Math.sign(this.sprite.vy);
         let ax = 200 * Math.sign(this.sprite.vx);
@@ -497,6 +496,9 @@ class BigPlane extends Plane implements EnemyPlane {
     }
 }
 
+interface IEnemyPlane {
+    new(def: PlaneDefinition): EnemyPlane;
+}
 class EnemyPlanes {
     private static planes: any = {};
 
@@ -535,48 +537,93 @@ class EnemyPlanes {
     }
 }
 
-function shoot() {
-    const projectileImg = img`
-        1
-        1
-    `
-    if (weaponLevel >= 1) {
-        sprites.createProjectileFromSprite(projectileImg, plane, 0, -100)
+class Player {
+    private hits = 0
+    private weaponLevel = 1
+    private readonly sprite: Sprite;
+
+    constructor() {
+        this.sprite = sprites.create(img`
+            . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . .
+            . . . . . . . 4 4 . . . . . . .
+            . . . 4 . . . 4 4 . . . 4 . . .
+            . . 9 9 9 . 4 8 8 e . 9 9 9 . .
+            . . . 4 . . 4 8 8 e . . 4 . . .
+            . 4 4 4 4 4 4 4 4 4 4 4 4 4 4 .
+            4 4 e e e e e e b b b b b b 4 e
+            . 6 4 4 4 4 4 4 4 4 4 4 4 4 6 .
+            . . . 4 e . . . . . . 4 e . . .
+            . . . 4 e . . . . . . 4 e . . .
+            . . . 4 e . . . . . . 4 e . . .
+            . . 4 4 4 e . . . . 4 4 4 e . .
+            . . 3 4 2 3 e e e e 3 2 4 3 . .
+            4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 e
+            . . . 4 e . . . . . . 4 e . . .
+        `, SpriteKind.Player)
+
+        this.sprite.y = 110;
+        controller.moveSprite(this.sprite);
+        this.sprite.setFlag(SpriteFlag.StayInScreen, true);
+
+        controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+            this.shoot();
+        });
+        game.onUpdateInterval(150, function () {
+            if (controller.A.isPressed()) {
+                this.shoot();
+            }
+        });
+
+        sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, playerSprite) {
+            this.gotHit(playerSprite, enemyProjectile)
+        })
+
+        sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            this.weaponLevel += 1;
+            powerUpSprite.destroy(effects.fountain, 300)
+        })
+        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
+            this.gotHit(playerSprite, enemySprite)
+        })
     }
-    if (weaponLevel >= 2) {
-        sprites.createProjectileFromSprite(projectileImg, plane, -50, -87)
-        sprites.createProjectileFromSprite(projectileImg, plane, 50, -87)
+
+    public getSprite(): Sprite {
+        return this.sprite;
     }
-    if (weaponLevel >= 3) {
-        sprites.createProjectileFromSprite(projectileImg, plane, -87, -50)
-        sprites.createProjectileFromSprite(projectileImg, plane, 87, -50)
+
+    public shoot() {
+        const projectileImg = img`
+            1
+            1
+        `
+        if (this.weaponLevel >= 1) {
+            sprites.createProjectileFromSprite(projectileImg, this.sprite, 0, -100)
+        }
+        if (this.weaponLevel >= 2) {
+            sprites.createProjectileFromSprite(projectileImg, this.sprite, -50, -87)
+            sprites.createProjectileFromSprite(projectileImg, this.sprite, 50, -87)
+        }
+        if (this.weaponLevel >= 3) {
+            sprites.createProjectileFromSprite(projectileImg, this.sprite, -87, -50)
+            sprites.createProjectileFromSprite(projectileImg, this.sprite, 87, -50)
+        }
+    }
+
+    public gotHit(player: Sprite, otherSprite: Sprite) {
+        if (this.weaponLevel > 1) {
+            this.weaponLevel -= 1
+        } else {
+            info.changeLifeBy(-1)
+        }
+        player.startEffect(effects.spray, 200)
+        otherSprite.destroy(effects.fire, 100)
     }
 }
-
-function gotHit(player: Sprite, otherSprite: Sprite) {
-    if (weaponLevel > 1) {
-        weaponLevel -= 1
-    } else {
-        info.changeLifeBy(-1)
-    }
-    player.startEffect(effects.spray, 200)
-    otherSprite.destroy(effects.fire, 100)
-}
-
-sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, player) {
-    gotHit(player, enemyProjectile)
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemySprite) {
+    EnemyPlanes.fromSprite(enemySprite).gotHitBy(projectile);
 })
 
-sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUp, player2) {
-    weaponLevel += 1
-    powerUp.destroy(effects.fountain, 300)
-})
-sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemy) {
-    EnemyPlanes.fromSprite(enemy).gotHit(projectile);
-})
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (player2, otherSprite) {
-    gotHit(player2, otherSprite)
-})
 
 game.onUpdateInterval(5000, function () {
     if (Math.percentChance(10)) {
@@ -620,16 +667,6 @@ game.onUpdateInterval(5000, function () {
         island.z = -2
         island.setFlag(SpriteFlag.AutoDestroy, true);
     }
-})
-
-game.onUpdateInterval(5000, function () {
-    const plane = EnemyPlanes.createBigPlane({
-        direction: Direction.DOWN,
-        x: Math.randomRange(10, screen.width - 10),
-        y: 0,
-        vx: 0,
-        vy: 20
-    });
 })
 
 game.onUpdateInterval(3000, function () {
@@ -694,55 +731,117 @@ game.onUpdateInterval(3000, function () {
     }
 })
 
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    shoot()
-})
-game.onUpdateInterval(150, function () {
-    if (controller.A.isPressed()) {
-        //shoot();
-    }
-})
+interface Event {
+    ticks: number;
+    direction: Direction;
+    planeFactory(): EnemyPlane;
+}
 
-game.onUpdateInterval(1000, function () {
-    const  x = Math.randomRange(7, scene.screenWidth())
-    const  y = Math.randomRange(7, scene.screenHeight() - 30)
-    const vx = Math.randomRange(50, 70)
-    const vy = Math.randomRange(50, 70)
-    const side = Math.randomRange(0, 2)
-    const planeFactory = EnemyPlanes.randomPlaneFactory();
+interface EventProps {
+    ticks: number;
+    v: number;
+    delay?: number,
+    pos: number,
+    offset?: number,
+    direction: Direction;
+    plane: (def: PlaneDefinition) => EnemyPlane
+}
 
-    if (side == 0) {
-        for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            planeFactory({
-                direction: Direction.DOWN,
-                x: x,
-                y: Index * -15,
-                vx: 0,
-                vy: vy
-            });
-        }
-    } else if (side == 1) {
-        for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            planeFactory({
-                direction: Direction.LEFT,
-                x: scene.screenWidth() + Index * 15,
-                y: y,
-                vx: -vx,
-                vy: 0
-            });
-        }
-    } else {
-        for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
-            planeFactory({
-                direction: Direction.RIGHT,
-                x: Index * -15,
-                y: y,
-                vx: vx,
-                vy: 0
-            });
+class StoryBook {
+    private storyBook: Event[];
+    private static readonly greenPlane = (def: PlaneDefinition) => EnemyPlanes.createGreenPlane(def);
+    private static readonly grayPlane = (def: PlaneDefinition) => EnemyPlanes.createGrayPlane(def);
+    private static readonly redPlane = (def: PlaneDefinition) => EnemyPlanes.createRedPlane(def);
+    private static readonly bigPlane = (def: PlaneDefinition) => EnemyPlanes.createBigPlane(def);
+
+    private setup() {
+        this.storyBook = [];
+        let ticks = 0;
+        this.single(   { ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: StoryBook.greenPlane});
+        this.single(   { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
+        this.single(   { ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: StoryBook.redPlane});
+        this.single(   { ticks: ticks,       v: 60, pos: 90, direction: Direction.LEFT, plane: StoryBook.redPlane });
+        this.single(   { ticks: ticks += 50, v: 80, pos: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane});
+        this.single(   { ticks: ticks += 20, v: 30, pos: 60, direction: Direction.DOWN, plane: StoryBook.bigPlane});
+        this.inARow(3, { ticks: ticks += 30, v: 50, pos: 50, direction: Direction.LEFT, plane: StoryBook.greenPlane});
+        this.inARow(4, { ticks: ticks += 30, delay: 2, v: 80, pos: 10, offset: 10, direction: Direction.RIGHT, plane: StoryBook.redPlane});
+        this.inARow(5, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: StoryBook.bigPlane});
+        this.inARow(5, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: StoryBook.greenPlane });
+        this.single(   { ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.redPlane });
+        this.single(   { ticks: ticks,       v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.redPlane });
+        this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.redPlane });
+        this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.redPlane });
+        this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane });
+        this.inARow(3, { ticks: ticks,       delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
+        this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
+    }
+
+    private single(props: EventProps) {
+        this.inARow(1, props);
+    }
+
+    private inARow(n: number, props: EventProps) {
+        for (let i = 0; i < n; i++) {
+            this.storyBook.push(
+                this.createEvent(props.ticks + i * (props.delay || 3), props.direction, props.pos + i * (props.offset || 10), props.v, props.plane)
+            );
         }
     }
-})
+
+    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (def: PlaneDefinition) => EnemyPlane): Event {
+        let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
+        switch (direction) {
+            case Direction.DOWN:
+                x = pos;
+                y = 0;
+                vx = 0;
+                vy = v;
+                break;
+            case Direction.UP:
+                x = pos;
+                y = scene.screenHeight();
+                vx = 0;
+                vy = -v;
+                break; 
+            case Direction.LEFT:
+                x = scene.screenWidth();
+                y = pos;
+                vx = -v;
+                vy = 0;
+                break;
+            case Direction.RIGHT:
+                x = 0;
+                y = pos;
+                vx = v;
+                vy = 0;
+                break; 
+        }
+        return {
+            ticks,
+            direction,
+            planeFactory: () => plane({
+                direction, x, y, vx, vy
+            })
+        };
+    }
+
+    public play() {
+        this.setup();
+        let ticks = 0;
+        game.onUpdateInterval(100, () => {
+            ticks++;
+            while (this.storyBook.length > 0 && this.storyBook[0].ticks <= ticks) {
+                const event = this.storyBook.shift();
+                event.planeFactory();
+                if (this.storyBook.length == 0) {
+                    setTimeout(function () {
+                        game.over(true);
+                    }, 10000);
+                }
+            }
+        })
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -750,29 +849,9 @@ game.onUpdateInterval(1000, function () {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-let hits = 0
-let weaponLevel = 1
+const player = new Player();
 scene.setBackgroundColor(9)
-let plane = sprites.create(img`
-    . . . . . . . . . . . . . . . .
-    . . . . . . . . . . . . . . . .
-    . . . . . . . 4 4 . . . . . . .
-    . . . 4 . . . 4 4 . . . 4 . . .
-    . . 9 9 9 . 4 8 8 e . 9 9 9 . .
-    . . . 4 . . 4 8 8 e . . 4 . . .
-    . 4 4 4 4 4 4 4 4 4 4 4 4 4 4 .
-    4 4 e e e e e e b b b b b b 4 e
-    . 6 4 4 4 4 4 4 4 4 4 4 4 4 6 .
-    . . . 4 e . . . . . . 4 e . . .
-    . . . 4 e . . . . . . 4 e . . .
-    . . . 4 e . . . . . . 4 e . . .
-    . . 4 4 4 e . . . . 4 4 4 e . .
-    . . 3 4 2 3 e e e e 3 2 4 3 . .
-    4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 e
-    . . . 4 e . . . . . . 4 e . . .
-`, SpriteKind.Player)
-plane.y = 110
-controller.moveSprite(plane)
-plane.setFlag(SpriteFlag.StayInScreen, true)
-
 info.setLife(5)
+const storyBook = new StoryBook();
+storyBook.play();
+
