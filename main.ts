@@ -1,6 +1,5 @@
 namespace SpriteKind {
     export const Powerup = SpriteKind.create()
-    export const BigEnemy = SpriteKind.create()
     export const EnemyProjectile = SpriteKind.create()
 }
 
@@ -32,14 +31,14 @@ class PlaneImages {
 
 interface EnemyPlane {
     getImages(): PlaneImages;
-    shoot(): void;
-    setDataNumber(key: string, value: number): void;
     destroy(): void;
+    getSprite(): Sprite;
+    getScore(): number;
+    gotHit(projectile: Sprite): void;
 }
 
 interface PlaneDefinition {
     direction: Direction;
-    spriteKind: number;
     x: number;
     y: number;
     vx: number;
@@ -48,25 +47,34 @@ interface PlaneDefinition {
 
 abstract class Plane  {
     protected readonly sprite: Sprite;
-
+    protected remainingHits: number = 1;
+    
     constructor(image: Image, def: PlaneDefinition) {
-        this.sprite = sprites.create(image, def.spriteKind);
+        this.sprite = sprites.create(image, SpriteKind.Enemy);
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
         this.sprite.setPosition(def.x, def.y)
         this.sprite.setVelocity(def.vx, def.vy)
-        
-        this.sprite.onDestroyed(function () {
-            //console.log("desssstroy");
-            this.destroy();
-        })
     }
 
-    public setDataNumber(key: string, value: number) {
-        sprites.setDataNumber(this.sprite, key, value);
-    }
-
-    public destroy() {
+    public destroy(): void {
         // override in derived classes
+    }
+
+    public getSprite(): Sprite {
+        return this.sprite
+    }
+
+    public getScore(): number {
+        return 10;
+    }
+    
+    public gotHit(projectile: Sprite): void {
+        this.remainingHits -= 1;
+        projectile.destroy();
+        if (this.remainingHits == 0) {
+            this.sprite.destroy(effects.fire, 100);
+            info.changeScoreBy(this.getScore())
+        }
     }
 }
 
@@ -152,10 +160,6 @@ class GreenPlane extends Plane implements EnemyPlane {
 
     public getImages() {
         return GreenPlane.images;
-    }
-
-    public shoot() {
-        // does not shoot
     }
 }
 
@@ -468,6 +472,7 @@ class BigPlane extends Plane implements EnemyPlane {
 
     constructor(def: PlaneDefinition) {
         super(BigPlane.images.getImage(def.direction), def);
+        this.remainingHits = 3;
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -486,20 +491,39 @@ class BigPlane extends Plane implements EnemyPlane {
     public destroy() {
         clearInterval(this.interval);
     }
+
+    public getScore(): number {
+        return 30;
+    }
 }
 
 class EnemyPlanes {
+    private static planes: any = {};
+
+    private static register<T extends EnemyPlane>(plane: T): T {
+        EnemyPlanes.planes[plane.getSprite().id] = plane;
+        plane.getSprite().onDestroyed(() => {
+            delete EnemyPlanes.planes[plane.getSprite().id];
+            plane.destroy();
+        });
+        return plane;
+    }
+
+    public static fromSprite(sprite: Sprite): EnemyPlane {
+        return EnemyPlanes.planes[sprite.id];
+    }
+
     public static createRedPlane(def: PlaneDefinition): RedPlane {
-        return new RedPlane(def);
+        return EnemyPlanes.register(new RedPlane(def));
     }
     public static createGreenPlane(def: PlaneDefinition): GreenPlane {
-        return new GreenPlane(def);
+        return EnemyPlanes.register(new GreenPlane(def));
     }
     public static createGrayPlane(def: PlaneDefinition): GrayPlane {
-        return new GrayPlane(def);
+        return EnemyPlanes.register(new GrayPlane(def));
     }
     public static createBigPlane(def: PlaneDefinition): BigPlane {
-        return new BigPlane(def);
+        return EnemyPlanes.register(new BigPlane(def));
     }
 
     public static randomPlaneFactory(): { (def: PlaneDefinition): EnemyPlane} {
@@ -539,30 +563,16 @@ function gotHit(player: Sprite, otherSprite: Sprite) {
     otherSprite.destroy(effects.fire, 100)
 }
 
-sprites.onOverlap(SpriteKind.Projectile, SpriteKind.BigEnemy, function (projectile, bigEnemy) {
-    hits = sprites.readDataNumber(bigEnemy, "hits") - 1
-    if (hits == 0) {
-        bigEnemy.destroy(effects.fire, 800)
-        info.changeScoreBy(10)
-    } else {
-        sprites.setDataNumber(bigEnemy, "hits", hits)
-    }
-    projectile.destroy()
+sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, player) {
+    gotHit(player, enemyProjectile)
 })
-sprites.onOverlap(SpriteKind.Player, SpriteKind.EnemyProjectile, function (player2, otherSprite) {
-    gotHit(player2, otherSprite)
-})
-sprites.onOverlap(SpriteKind.Player, SpriteKind.BigEnemy, function (player2, otherSprite) {
-    gotHit(player2, otherSprite)
-})
+
 sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUp, player2) {
     weaponLevel += 1
     powerUp.destroy(effects.fountain, 300)
 })
-sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
-    otherSprite.destroy(effects.fire, 100)
-    sprite.destroy()
-    info.changeScoreBy(10)
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemy) {
+    EnemyPlanes.fromSprite(enemy).gotHit(projectile);
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (player2, otherSprite) {
     gotHit(player2, otherSprite)
@@ -615,14 +625,11 @@ game.onUpdateInterval(5000, function () {
 game.onUpdateInterval(5000, function () {
     const plane = EnemyPlanes.createBigPlane({
         direction: Direction.DOWN,
-        spriteKind: SpriteKind.BigEnemy,
         x: Math.randomRange(10, screen.width - 10),
         y: 0,
         vx: 0,
         vy: 20
     });
-
-    plane.setDataNumber("hits", 3)
 })
 
 game.onUpdateInterval(3000, function () {
@@ -692,7 +699,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 game.onUpdateInterval(150, function () {
     if (controller.A.isPressed()) {
-        shoot();
+        //shoot();
     }
 })
 
@@ -708,7 +715,6 @@ game.onUpdateInterval(1000, function () {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
             planeFactory({
                 direction: Direction.DOWN,
-                spriteKind: SpriteKind.Enemy,
                 x: x,
                 y: Index * -15,
                 vx: 0,
@@ -719,7 +725,6 @@ game.onUpdateInterval(1000, function () {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
             planeFactory({
                 direction: Direction.LEFT,
-                spriteKind: SpriteKind.Enemy,
                 x: scene.screenWidth() + Index * 15,
                 y: y,
                 vx: -vx,
@@ -730,7 +735,6 @@ game.onUpdateInterval(1000, function () {
         for (let Index = 0; Index <= Math.randomRange(0, 3); Index++) {
             planeFactory({
                 direction: Direction.RIGHT,
-                spriteKind: SpriteKind.Enemy,
                 x: Index * -15,
                 y: y,
                 vx: vx,
