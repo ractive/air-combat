@@ -74,6 +74,7 @@ abstract class Plane  {
         if (this.remainingHits == 0) {
             this.sprite.destroy(effects.fire, 100);
             info.changeScoreBy(this.getScore())
+            music.playSound("C4:1");
         }
     }
 }
@@ -581,7 +582,7 @@ class Player {
 
         sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
             this.weaponLevel += 1;
-            powerUpSprite.destroy(effects.fountain, 300)
+            powerUp.caught();
         })
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
             this.gotHit(playerSprite, enemySprite)
@@ -612,9 +613,11 @@ class Player {
 
     public gotHit(player: Sprite, otherSprite: Sprite) {
         if (this.weaponLevel > 1) {
-            this.weaponLevel -= 1
+            this.weaponLevel -= 1;
+            music.playSound("G5:1 C5:1");
         } else {
             info.changeLifeBy(-1)
+            music.playSound("G5:1 E5:1 C5:2");
         }
         player.startEffect(effects.spray, 200)
         otherSprite.destroy(effects.fire, 100)
@@ -711,9 +714,10 @@ game.onUpdateInterval(3000, function () {
     cloud.setFlag(SpriteFlag.AutoDestroy, true);
 })
 
-game.onUpdateInterval(3000, function () {
-    if (Math.percentChance(50)) {
-        const weaponPowerup = sprites.create(img`
+class PowereUp {
+    private sprite: Sprite;
+    constructor() {
+        this.sprite = sprites.create(img`
             . . . . . . . .
             . . 7 7 7 7 7 .
             . 7 7 1 1 1 7 7
@@ -722,18 +726,38 @@ game.onUpdateInterval(3000, function () {
             . 7 7 1 7 7 7 7
             . 7 7 1 7 7 7 7
             . . 7 7 7 7 7 .
-        `, SpriteKind.Powerup)
-        weaponPowerup.setPosition(Math.randomRange(10, scene.screenWidth() - 10), Math.randomRange(10, scene.screenHeight() - 10))
-        weaponPowerup.z = -1
-        setInterval(function () {
-            weaponPowerup.destroy()
-        }, 3000)
+        `, SpriteKind.Powerup);
+        this.hide();
+        this.sprite.z = -1;
+
+        game.onUpdateInterval(3000, function () {
+            if (Math.percentChance(50)) {
+                this.sprite.setPosition(Math.randomRange(10, scene.screenWidth() - 10), Math.randomRange(10, scene.screenHeight() - 10))
+                this.show();
+                setTimeout(function () {
+                    this.hide();
+                }, 3000)
+            }
+        })
     }
-})
+
+    private show() {
+        this.sprite.setFlag(SpriteFlag.Invisible | SpriteFlag.Ghost, false);
+    }
+
+    private hide() {
+        this.sprite.setFlag(SpriteFlag.Invisible | SpriteFlag.Ghost, true);
+    }
+
+    public caught() {
+        music.baDing.play();
+        this.sprite.startEffect(effects.fountain, 500);
+        this.hide();
+    }
+}
 
 interface Event {
     ticks: number;
-    direction: Direction;
     planeFactory(): EnemyPlane;
 }
 
@@ -845,7 +869,6 @@ class StoryBook {
         }
         return {
             ticks,
-            direction,
             planeFactory: () => plane({
                 direction, x, y, vx, vy
             })
@@ -877,8 +900,9 @@ class StoryBook {
 //////////////////////////////////////////////////////////////////////////////
 
 const player = new Player();
-scene.setBackgroundColor(9)
-info.setLife(5)
+const powerUp = new PowereUp();
+scene.setBackgroundColor(9);
+info.setLife(5);
 const storyBook = new StoryBook();
 storyBook.play();
 
