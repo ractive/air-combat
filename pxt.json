@@ -1,8 +1,7 @@
 {
     "name": "Air Combat",
     "dependencies": {
-        "device": "*",
-        "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.0.4"
+        "device": "*"
     },
     "description": "",
     "files": [
