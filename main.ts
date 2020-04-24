@@ -49,12 +49,16 @@ interface Movement {
 abstract class Plane  {
     protected readonly sprite: Sprite;
     protected remainingHits: number = 1;
+    protected hits: number = 1;
     protected movement: Movement;
 
-    constructor(image: Image, mov: Movement) {
+
+    constructor(image: Image, mov: Movement, hits: number = 1) {
         this.sprite = sprites.create(image, SpriteKind.Enemy);
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
         this.movement = mov;
+        this.remainingHits = hits;
+        this.hits = hits;
 
         let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
         switch (mov.direction) {
@@ -105,7 +109,7 @@ abstract class Plane  {
     }
     
     public gotHitBy(projectile: Sprite): void {
-        if (projectile.kind() == SpriteKind.BombPowerup) {
+        if (projectile.kind() === SpriteKind.BombPowerup) {
             this.remainingHits = 0;
         } else {
             this.remainingHits -= 1;
@@ -115,6 +119,12 @@ abstract class Plane  {
             this.sprite.destroy(effects.fire, 100);
             info.changeScoreBy(this.getScore())
             music.playSound("C4:1");
+        } else if (this.remainingHits < this.hits / 2) {
+            this.sprite.startEffect(effects.fire);
+        }
+
+        if (projectile.kind() === SpriteKind.Projectile) {
+            projectile.destroy();
         }
     }
 }
@@ -515,8 +525,7 @@ class BigPlane extends Plane implements Enemy {
     private readonly interval: number;
 
     constructor(mov: Movement) {
-        super(BigPlane.images.getImage(mov.direction), mov);
-        this.remainingHits = 3;
+        super(BigPlane.images.getImage(mov.direction), mov, 3);
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -717,8 +726,7 @@ class BomberPlane extends Plane implements Enemy {
     private readonly interval: number;
 
     constructor(mov: Movement) {
-        super(BomberPlane.images.getImage(mov.direction), mov);
-        this.remainingHits = 20;
+        super(BomberPlane.images.getImage(mov.direction), mov, 20);
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
