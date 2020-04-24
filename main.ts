@@ -830,27 +830,59 @@ class Player {
         1
         1
     `;
+    private static readonly planeLeft = img`
+        . . . . . 4 . . . . . . . . . .
+        . . 4 . . 4 . . 4 . . . . . . .
+        . 9 9 9 4 8 e 9 9 9 . . . . . .
+        . . 4 . 4 8 e . 4 . . . . . . .
+        4 4 4 4 4 4 4 4 4 4 e . . . . .
+        4 e e e e 4 b b b b e . . . . .
+        6 4 4 4 4 4 4 4 4 4 6 . . . . .
+        . . 4 e . . . 4 e . . . . . . .
+        . . 4 e . . . 4 e . . . . . . .
+        . . 4 e . . . 4 e . . . . . . .
+        . 4 4 4 . . . 4 4 e . . . . . .
+        . 3 4 2 e e e 2 4 3 . . . . . .
+        4 4 4 4 4 4 4 4 4 4 e . . . . .
+        . . 4 e . . . 4 e . . . . . . .
+    `;
+    private static readonly planeStraight = img`
+        . . . . . . . 4 4 . . . . . . .
+        . . . 4 . . . 4 4 . . . 4 . . .
+        . . 6 6 6 . 4 8 8 e . 6 6 6 . .
+        . . . 4 . . 4 8 8 e . . 4 . . .
+        . 4 4 4 4 4 4 4 4 4 4 4 4 4 4 .
+        4 4 e e e e e e b b b b b b 4 e
+        . 6 4 4 4 4 4 4 4 4 4 4 4 4 6 .
+        . . . 4 e . . . . . . 4 e . . .
+        . . . 4 e . . . . . . 4 e . . .
+        . . . 4 e . . . . . . 4 e . . .
+        . . 4 4 4 e . . . . 4 4 4 e . .
+        . . 3 4 2 3 e e e e 3 2 4 3 . .
+        d 4 4 4 4 4 4 4 4 4 4 4 4 4 4 e
+        . . . 4 e . . . . . . 4 e . . .
+    `;
+    private static readonly planeRight = img`
+        . . . . . . . . . . 4 . . . . .
+        . . . . . . . 4 . . 4 . . 4 . .
+        . . . . . . 9 9 9 4 8 e 9 9 9 .
+        . . . . . . . 4 . 4 8 e . 4 . .
+        . . . . . 3 4 4 4 4 4 4 4 4 4 4
+        . . . . . 3 e e e e 4 b b b b e
+        . . . . . 6 4 4 4 4 4 4 4 4 4 6
+        . . . . . . . 4 e . . . 4 e . .
+        . . . . . . . 4 e . . . 4 e . .
+        . . . . . . . 4 e . . . 4 e . .
+        . . . . . . 4 4 4 . . . 4 4 e .
+        . . . . . . 3 4 2 e e e 2 4 3 .
+        . . . . . 3 4 4 4 4 4 4 4 4 4 4
+        . . . . . . . 4 e . . . 4 e . .
+    `;
+
     constructor() {
         info.setLife(Player.maxLifes);
 
-        this.sprite = sprites.create(img`
-            . . . . . . . . . . . . . . . .
-            . . . . . . . . . . . . . . . .
-            . . . . . . . 4 4 . . . . . . .
-            . . . 4 . . . 4 4 . . . 4 . . .
-            . . 9 9 9 . 4 8 8 e . 9 9 9 . .
-            . . . 4 . . 4 8 8 e . . 4 . . .
-            . 4 4 4 4 4 4 4 4 4 4 4 4 4 4 .
-            4 4 e e e e e e b b b b b b 4 e
-            . 6 4 4 4 4 4 4 4 4 4 4 4 4 6 .
-            . . . 4 e . . . . . . 4 e . . .
-            . . . 4 e . . . . . . 4 e . . .
-            . . . 4 e . . . . . . 4 e . . .
-            . . 4 4 4 e . . . . 4 4 4 e . .
-            . . 3 4 2 3 e e e e 3 2 4 3 . .
-            4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 e
-            . . . 4 e . . . . . . 4 e . . .
-        `, SpriteKind.Player)
+        this.sprite = sprites.create(Player.planeStraight, SpriteKind.Player)
 
         this.sprite.y = 110;
         controller.moveSprite(this.sprite);
@@ -892,6 +924,13 @@ class Player {
         game.onUpdateInterval(250, function () {
             if (controller.B.isPressed()) {
                 this.shoot();
+            }
+            if (controller.left.isPressed()) {
+                this.sprite.setImage(Player.planeLeft);
+            } else if (controller.right.isPressed()) {
+                this.sprite.setImage(Player.planeRight);
+            } else {
+                this.sprite.setImage(Player.planeStraight);
             }
         });
 
