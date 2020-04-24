@@ -757,23 +757,44 @@ class StoryBook {
     private setup() {
         this.storyBook = [];
         let ticks = 0;
-        this.single(   { ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: StoryBook.greenPlane});
-        this.single(   { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
-        this.single(   { ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: StoryBook.redPlane});
-        this.single(   { ticks: ticks,       v: 60, pos: 90, direction: Direction.LEFT, plane: StoryBook.redPlane });
-        this.single(   { ticks: ticks += 50, v: 80, pos: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane});
-        this.single(   { ticks: ticks += 20, v: 30, pos: 60, direction: Direction.DOWN, plane: StoryBook.bigPlane});
-        this.inARow(3, { ticks: ticks += 30, v: 50, pos: 50, direction: Direction.LEFT, plane: StoryBook.greenPlane});
-        this.inARow(4, { ticks: ticks += 30, delay: 2, v: 80, pos: 10, offset: 10, direction: Direction.RIGHT, plane: StoryBook.redPlane});
-        this.inARow(5, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: StoryBook.bigPlane});
-        this.inARow(5, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: StoryBook.greenPlane });
-        this.single(   { ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.redPlane });
-        this.single(   { ticks: ticks,       v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.redPlane });
-        this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.redPlane });
-        this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.redPlane });
-        this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane });
-        this.inARow(3, { ticks: ticks,       delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
-        this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
+        for (let i = 0; i < 5; i++) {
+            this.single(   { ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: StoryBook.greenPlane});
+            this.single(   { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
+            this.single(   { ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: StoryBook.redPlane});
+            this.single(   { ticks: ticks,       v: 60, pos: 90, direction: Direction.LEFT, plane: StoryBook.redPlane });
+            this.single(   { ticks: ticks += 50, v: 80, pos: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane});
+            this.single(   { ticks: ticks += 20, v: 30, pos: 60, direction: Direction.DOWN, plane: StoryBook.bigPlane});
+
+            this.inARow(3, { ticks: ticks += 30, v: 50, pos: 50, direction: Direction.LEFT, plane: StoryBook.greenPlane});
+            this.inARow(4, { ticks: ticks += 30, delay: 2, v: 80, pos: 10, offset: 10, direction: Direction.RIGHT, plane: StoryBook.redPlane});
+            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: StoryBook.bigPlane});
+            this.inARow(2, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: StoryBook.greenPlane });
+
+            this.single(   { ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.redPlane });
+            this.single(   { ticks: ticks,       v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.redPlane });
+            this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.redPlane });
+            this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.redPlane });
+
+            this.inARow(6, { ticks: ticks += 30, v: 15, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.greenPlane });
+            this.inARow(6, { ticks: ticks += 10, v: 30, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.redPlane });
+            this.inARow(6, { ticks: ticks += 10, v: 80, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+
+            this.single({ ticks: ticks += 20, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.greenPlane });
+
+            this.single({ ticks: ticks += 30, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.grayPlane });
+
+            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane });
+            this.inARow(3, { ticks: ticks,       delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
+            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
+            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
+           
+        }
     }
 
     private single(props: EventProps) {
@@ -782,8 +803,14 @@ class StoryBook {
 
     private inARow(n: number, props: EventProps) {
         for (let i = 0; i < n; i++) {
+            if (!props.delay && props.delay !== 0) {
+                props.delay = 3;
+            }
+            if (!props.offset && props.offset !== 0) {
+                props.offset = 10;
+            }
             this.storyBook.push(
-                this.createEvent(props.ticks + i * (props.delay || 3), props.direction, props.pos + i * (props.offset || 10), props.v, props.plane)
+                this.createEvent(props.ticks + i * props.delay, props.direction, props.pos + i * props.offset, props.v, props.plane)
             );
         }
     }
