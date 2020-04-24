@@ -5,7 +5,6 @@ namespace SpriteKind {
     export const EnemyProjectile = SpriteKind.create()
 }
 
-
 enum Direction { UP, LEFT, DOWN, RIGHT };
 
 function rotate(image: Image, direction: Direction): Image {
@@ -365,21 +364,13 @@ class Enemies {
         return Enemies.planes.find(p => p.getSprite().id === sprite.id);
     }
 
-    public static createRedPlane(mov: Movement): RedPlane {
-        return Enemies.register(new RedPlane(mov));
-    }
-    public static createGreenPlane(mov: Movement): GreenPlane {
-        return Enemies.register(new GreenPlane(mov));
-    }
-    public static createGrayPlane(mov: Movement): GrayPlane {
-        return Enemies.register(new GrayPlane(mov));
-    }
-    public static createBigPlane(mov: Movement): BigPlane {
-        return Enemies.register(new BigPlane(mov));
-    }
-    public static createBomberPlane(mov: Movement): BomberPlane {
-        return Enemies.register(new BomberPlane(mov));
-    }
+    public static redPlane = (mov: Movement) => Enemies.register(new RedPlane(mov));
+    public static greenPlane = (mov: Movement) => Enemies.register(new GreenPlane(mov));
+    public static grayPlane = (mov: Movement) => Enemies.register(new GrayPlane(mov));
+    public static bigPlane = (mov: Movement) => Enemies.register(new BigPlane(mov));
+    public static bomberPlane = (mov: Movement) => Enemies.register(new BomberPlane(mov));
+    
+
 
     public static destroyAll(sprite: Sprite): void {
         Enemies.planes.forEach((enemy: Enemy) => {
@@ -388,14 +379,6 @@ class Enemies {
         sprites.allOfKind(SpriteKind.EnemyProjectile).forEach((projectile: Sprite) => {
             projectile.destroy();
         });
-    }
-
-    public static randomPlaneFactory(): { (mov: Movement): Enemy} {
-        switch (Math.randomRange(0, 2)) {
-            case 0: return (mov: Movement) => Enemies.createRedPlane(mov);
-            case 1: return (mov: Movement) => Enemies.createGreenPlane(mov)
-            default: return (mov: Movement) => Enemies.createGrayPlane(mov)
-        }
     }
 }
 
@@ -747,64 +730,59 @@ interface EventProps {
 
 class StoryBook {
     private storyBook: Event[];
-    private static readonly greenPlane = (mov: Movement) => Enemies.createGreenPlane(mov);
-    private static readonly grayPlane = (mov: Movement) => Enemies.createGrayPlane(mov);
-    private static readonly redPlane = (mov: Movement) => Enemies.createRedPlane(mov);
-    private static readonly bigPlane = (mov: Movement) => Enemies.createBigPlane(mov);
-    private static readonly bomberPlane = (mov: Movement) => Enemies.createBomberPlane(mov);
 
     private setup() {
         this.storyBook = [];
         let ticks = 0;
         for (let i = 0; i < 1; i++) {
 
-            this.single(   { ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: StoryBook.greenPlane});
-            this.single(   { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
-            this.single(   { ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: StoryBook.redPlane});
-            this.single(   { ticks: ticks,       v: 60, pos: 90, direction: Direction.LEFT, plane: StoryBook.redPlane });
-            this.single(   { ticks: ticks += 50, v: 80, pos: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane});
-            this.single(   { ticks: ticks += 20, v: 30, pos: 60, direction: Direction.DOWN, plane: StoryBook.bigPlane});
+            this.single({ ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: Enemies.greenPlane});
+            this.single({ ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: Enemies.greenPlane });
+            this.single({ ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: Enemies.redPlane});
+            this.single({ ticks: ticks, v: 60, pos: 90, direction: Direction.LEFT, plane: Enemies.redPlane });
+            this.single({ ticks: ticks += 50, v: 80, pos: 30, direction: Direction.LEFT, plane: Enemies.grayPlane});
+            this.single({ ticks: ticks += 20, v: 30, pos: 60, direction: Direction.DOWN, plane: Enemies.bigPlane});
 
-            this.inARow(3, { ticks: ticks += 30, v: 50, pos: 50, direction: Direction.LEFT, plane: StoryBook.greenPlane});
-            this.inARow(4, { ticks: ticks += 30, delay: 2, v: 80, pos: 10, offset: 10, direction: Direction.RIGHT, plane: StoryBook.redPlane});
-            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: StoryBook.bigPlane});
-            this.inARow(2, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: StoryBook.greenPlane });
+            this.inARow(3, { ticks: ticks += 30, v: 50, pos: 50, direction: Direction.LEFT, plane: Enemies.greenPlane});
+            this.inARow(4, { ticks: ticks += 30, delay: 2, v: 80, pos: 10, offset: 10, direction: Direction.RIGHT, plane: Enemies.redPlane});
+            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: Enemies.bigPlane});
+            this.inARow(2, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: Enemies.greenPlane });
 
-            this.single(   { ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.redPlane });
-            this.single(   { ticks: ticks,       v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.redPlane });
-            this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.redPlane });
-            this.single(   { ticks: ticks,       v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.redPlane });
+            this.single({ ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.redPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: Enemies.redPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.redPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.redPlane });
 
-            this.inARow(6, { ticks: ticks += 30, v: 15, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.greenPlane });
-            this.inARow(6, { ticks: ticks += 10, v: 30, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.redPlane });
-            this.inARow(6, { ticks: ticks += 10, v: 80, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+            this.inARow(6, { ticks: ticks += 30, v: 15, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: Enemies.greenPlane });
+            this.inARow(6, { ticks: ticks += 10, v: 30, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: Enemies.redPlane });
+            this.inARow(6, { ticks: ticks += 10, v: 80, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: Enemies.grayPlane });
 
-            this.single({ ticks: ticks += 30, v: 15, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+            this.single({ ticks: ticks += 30, v: 15, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
-            this.single({ ticks: ticks += 100, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.bomberPlane });
+            this.single({ ticks: ticks += 100, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.bomberPlane });
 
-            this.single({ ticks: ticks += 50, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.greenPlane });
-            this.single({ ticks: ticks, v: 20, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
-            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.greenPlane });
-            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.greenPlane });
+            this.single({ ticks: ticks += 50, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: Enemies.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.greenPlane });
+            this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.greenPlane });
 
-            this.single({ ticks: ticks += 30, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.grayPlane });
-            this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
-            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.grayPlane });
-            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.grayPlane });
+            this.single({ ticks: ticks += 30, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: Enemies.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.grayPlane });
+            this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.grayPlane });
 
-            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: StoryBook.grayPlane });
-            this.inARow(3, { ticks: ticks,       delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: StoryBook.grayPlane });
-            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
-            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
+            this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: Enemies.grayPlane });
+            this.inARow(3, { ticks: ticks, delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: Enemies.grayPlane });
+            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
+            this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
            
-            this.inARow(2, { ticks: ticks += 100, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+            this.inARow(2, { ticks: ticks += 100, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
-            this.inARow(3, { ticks: ticks += 200, v: 10, delay: 0, pos: 25, offset: 54, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+            this.inARow(3, { ticks: ticks += 200, v: 10, delay: 0, pos: 25, offset: 54, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
-            this.inARow(2, { ticks: ticks += 50, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: StoryBook.grayPlane });
-            this.single({ ticks: ticks += 7, v: 70, delay: 0, pos: scene.screenWidth() / 2, offset: 0, direction: Direction.DOWN, plane: StoryBook.grayPlane });
-            this.inARow(2, { ticks: ticks += 7, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+            this.inARow(2, { ticks: ticks += 50, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: Enemies.grayPlane });
+            this.single({ ticks: ticks += 7, v: 70, delay: 0, pos: scene.screenWidth() / 2, offset: 0, direction: Direction.DOWN, plane: Enemies.grayPlane });
+            this.inARow(2, { ticks: ticks += 7, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: Enemies.grayPlane });
         }
     }
 
