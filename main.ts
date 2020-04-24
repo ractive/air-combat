@@ -1,6 +1,7 @@
 namespace SpriteKind {
     export const Powerup = SpriteKind.create()
     export const BombPowerup = SpriteKind.create()
+    export const LifePowerup = SpriteKind.create()
     export const EnemyProjectile = SpriteKind.create()
 }
 
@@ -752,11 +753,12 @@ class Enemies {
     }
 
     public static destroyAll(sprite: Sprite): void {
-        console.log("destroyAll!");
         Enemies.planes.forEach((enemy: Enemy) => {
             enemy.gotHitBy(sprite);
         });
-        console.log("destroyAll done");
+        sprites.allOfKind(SpriteKind.EnemyProjectile).forEach((projectile: Sprite) => {
+            projectile.destroy();
+        });
     }
 
     public static randomPlaneFactory(): { (def: PlaneDefinition): Enemy} {
@@ -857,6 +859,10 @@ class Player {
             this.bombs = Math.min(this.bombs + 1, 3);
             this.drawBombs();
             bombPowerUp.caught();
+        });
+        sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
+            info.setLife(Math.min(info.life() + 1, 5));
+            lifePowerUp.caught();
         });
 
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemiesprite, playerSprite) {
@@ -1208,7 +1214,14 @@ const bombPowerUp = new PowereUp(img`
     . 7 7 1 3 7 7 7
     . . 7 7 7 7 7 .
 `, SpriteKind.BombPowerup, 10000, 50);
-
+const lifePowerUp = new PowereUp(img`
+    . 2 2 . 2 2 .
+    2 2 2 2 2 2 2
+    2 2 2 2 2 2 2
+    . 2 2 2 2 2 .
+    . . 2 2 2 . .
+    . . . 2 . . .
+`, SpriteKind.LifePowerup, 10000, 40);
 scene.setBackgroundColor(9);
 info.setLife(5);
 const storyBook = new StoryBook();
