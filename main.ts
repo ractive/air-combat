@@ -8,7 +8,7 @@ namespace SpriteKind {
 
 enum Direction { UP, LEFT, DOWN, RIGHT };
 
-class PlaneImages {
+class Images {
     private readonly up: Image;
     private readonly left: Image;
     private readonly down: Image;
@@ -32,30 +32,57 @@ class PlaneImages {
 }
 
 interface Enemy {
-    getImages(): PlaneImages;
+    getImages(): Images;
     destroy(): void;
     getSprite(): Sprite;
     getScore(): number;
     gotHitBy(projectile?: Sprite): void;
 }
 
-interface PlaneDefinition {
+interface Movement {
     direction: Direction;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
+    pos: number;
+    v: number;
 }
 
 abstract class Plane  {
     protected readonly sprite: Sprite;
     protected remainingHits: number = 1;
     
-    constructor(image: Image, def: PlaneDefinition) {
+    constructor(image: Image, mov: Movement) {
         this.sprite = sprites.create(image, SpriteKind.Enemy);
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
-        this.sprite.setPosition(def.x, def.y)
-        this.sprite.setVelocity(def.vx, def.vy)
+
+        let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
+        switch (mov.direction) {
+            case Direction.DOWN:
+                x = mov.pos;
+                y = 0;
+                vx = 0;
+                vy = mov.v;
+                break;
+            case Direction.UP:
+                x = mov.pos;
+                y = scene.screenHeight();
+                vx = 0;
+                vy = -mov.v;
+                break;
+            case Direction.LEFT:
+                x = scene.screenWidth();
+                y = mov.pos;
+                vx = -mov.v;
+                vy = 0;
+                break;
+            case Direction.RIGHT:
+                x = 0;
+                y = mov.pos;
+                vx = mov.v;
+                vy = 0;
+                break;
+        }
+
+        this.sprite.setPosition(x, y)
+        this.sprite.setVelocity(vx, vy)
     }
 
     public destroy(): void {
@@ -86,7 +113,7 @@ abstract class Plane  {
 }
 
 class GreenPlane extends Plane implements Enemy {
-    public static readonly images: PlaneImages = new PlaneImages(
+    public static readonly images: Images = new Images(
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -161,8 +188,8 @@ class GreenPlane extends Plane implements Enemy {
         `
     );
 
-    constructor(def: PlaneDefinition) {
-        super(GreenPlane.images.getImage(def.direction), def);
+    constructor(mov: Movement) {
+        super(GreenPlane.images.getImage(mov.direction), mov);
     }
 
     public getImages() {
@@ -171,7 +198,7 @@ class GreenPlane extends Plane implements Enemy {
 }
 
 class RedPlane extends Plane implements Enemy {
-    static readonly images: PlaneImages = new PlaneImages(
+    static readonly images: Images = new Images(
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -246,11 +273,11 @@ class RedPlane extends Plane implements Enemy {
         `
     );
 
-    constructor(def: PlaneDefinition) {
-        super(RedPlane.images.getImage(def.direction), def);
+    constructor(mov: Movement) {
+        super(RedPlane.images.getImage(mov.direction), mov);
     }
 
-    public getImages(): PlaneImages {
+    public getImages(): Images {
         return RedPlane.images;
     }
 
@@ -266,7 +293,7 @@ class GrayPlane extends Plane implements Enemy {
         d f d
     `;
     
-    public static readonly images: PlaneImages = new PlaneImages(
+    public static readonly images: Images = new Images(
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -341,12 +368,12 @@ class GrayPlane extends Plane implements Enemy {
         `
     );
 
-    constructor(def: PlaneDefinition) {
-        super(GrayPlane.images.getImage(def.direction), def);
+    constructor(mov: Movement) {
+        super(GrayPlane.images.getImage(mov.direction), mov);
         this.shoot();
     }
 
-    public getImages(): PlaneImages {
+    public getImages(): Images {
         return GrayPlane.images;
     }
 
@@ -379,7 +406,7 @@ class BigPlane extends Plane implements Enemy {
         2 4 2
         5 2 5
     `;
-    public static readonly images: PlaneImages = new PlaneImages(
+    public static readonly images: Images = new Images(
         img`
             . . . . . . . . . . . 2 . . . . . . . . . . . .
             . . . . . . . . . . 2 7 2 . . . . . . . . . . .
@@ -480,8 +507,8 @@ class BigPlane extends Plane implements Enemy {
 
     private readonly interval: number;
 
-    constructor(def: PlaneDefinition) {
-        super(BigPlane.images.getImage(def.direction), def);
+    constructor(mov: Movement) {
+        super(BigPlane.images.getImage(mov.direction), mov);
         this.remainingHits = 3;
         this.shoot();
         this.interval = setInterval(() => {
@@ -489,7 +516,7 @@ class BigPlane extends Plane implements Enemy {
         }, 1200);
     }
 
-    public getImages(): PlaneImages {
+    public getImages(): Images {
         return BigPlane.images;
     }
 
@@ -513,7 +540,7 @@ class BomberPlane extends Plane implements Enemy {
         2 4 2
         5 2 5
     `;
-    public static readonly images: PlaneImages = new PlaneImages(
+    public static readonly images: Images = new Images(
         img`
             . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
@@ -682,8 +709,8 @@ class BomberPlane extends Plane implements Enemy {
 
     private readonly interval: number;
 
-    constructor(def: PlaneDefinition) {
-        super(BomberPlane.images.getImage(def.direction), def);
+    constructor(mov: Movement) {
+        super(BomberPlane.images.getImage(mov.direction), mov);
         this.remainingHits = 20;
         this.shoot();
         this.interval = setInterval(() => {
@@ -691,7 +718,7 @@ class BomberPlane extends Plane implements Enemy {
         }, 800);
     }
 
-    public getImages(): PlaneImages {
+    public getImages(): Images {
         return BigPlane.images;
     }
 
@@ -736,20 +763,20 @@ class Enemies {
         return Enemies.planes.find(p => p.getSprite().id === sprite.id);
     }
 
-    public static createRedPlane(def: PlaneDefinition): RedPlane {
-        return Enemies.register(new RedPlane(def));
+    public static createRedPlane(mov: Movement): RedPlane {
+        return Enemies.register(new RedPlane(mov));
     }
-    public static createGreenPlane(def: PlaneDefinition): GreenPlane {
-        return Enemies.register(new GreenPlane(def));
+    public static createGreenPlane(mov: Movement): GreenPlane {
+        return Enemies.register(new GreenPlane(mov));
     }
-    public static createGrayPlane(def: PlaneDefinition): GrayPlane {
-        return Enemies.register(new GrayPlane(def));
+    public static createGrayPlane(mov: Movement): GrayPlane {
+        return Enemies.register(new GrayPlane(mov));
     }
-    public static createBigPlane(def: PlaneDefinition): BigPlane {
-        return Enemies.register(new BigPlane(def));
+    public static createBigPlane(mov: Movement): BigPlane {
+        return Enemies.register(new BigPlane(mov));
     }
-    public static createBomberPlane(def: PlaneDefinition): BomberPlane {
-        return Enemies.register(new BomberPlane(def));
+    public static createBomberPlane(mov: Movement): BomberPlane {
+        return Enemies.register(new BomberPlane(mov));
     }
 
     public static destroyAll(sprite: Sprite): void {
@@ -761,11 +788,11 @@ class Enemies {
         });
     }
 
-    public static randomPlaneFactory(): { (def: PlaneDefinition): Enemy} {
+    public static randomPlaneFactory(): { (mov: Movement): Enemy} {
         switch (Math.randomRange(0, 2)) {
-            case 0: return (def: PlaneDefinition) => Enemies.createRedPlane(def);
-            case 1: return (def: PlaneDefinition) => Enemies.createGreenPlane(def)
-            default: return (def: PlaneDefinition) => Enemies.createGrayPlane(def)
+            case 0: return (mov: Movement) => Enemies.createRedPlane(mov);
+            case 1: return (mov: Movement) => Enemies.createGreenPlane(mov)
+            default: return (mov: Movement) => Enemies.createGrayPlane(mov)
         }
     }
 }
@@ -1049,16 +1076,16 @@ interface EventProps {
     pos: number,
     offset?: number,
     direction: Direction;
-    plane: (def: PlaneDefinition) => Enemy
+    plane: (mov: Movement) => Enemy
 }
 
 class StoryBook {
     private storyBook: Event[];
-    private static readonly greenPlane = (def: PlaneDefinition) => Enemies.createGreenPlane(def);
-    private static readonly grayPlane = (def: PlaneDefinition) => Enemies.createGrayPlane(def);
-    private static readonly redPlane = (def: PlaneDefinition) => Enemies.createRedPlane(def);
-    private static readonly bigPlane = (def: PlaneDefinition) => Enemies.createBigPlane(def);
-    private static readonly bomberPlane = (def: PlaneDefinition) => Enemies.createBomberPlane(def);
+    private static readonly greenPlane = (mov: Movement) => Enemies.createGreenPlane(mov);
+    private static readonly grayPlane = (mov: Movement) => Enemies.createGrayPlane(mov);
+    private static readonly redPlane = (mov: Movement) => Enemies.createRedPlane(mov);
+    private static readonly bigPlane = (mov: Movement) => Enemies.createBigPlane(mov);
+    private static readonly bomberPlane = (mov: Movement) => Enemies.createBomberPlane(mov);
 
     private setup() {
         this.storyBook = [];
@@ -1133,38 +1160,11 @@ class StoryBook {
         }
     }
 
-    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (def: PlaneDefinition) => Enemy): Event {
-        let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
-        switch (direction) {
-            case Direction.DOWN:
-                x = pos;
-                y = 0;
-                vx = 0;
-                vy = v;
-                break;
-            case Direction.UP:
-                x = pos;
-                y = scene.screenHeight();
-                vx = 0;
-                vy = -v;
-                break; 
-            case Direction.LEFT:
-                x = scene.screenWidth();
-                y = pos;
-                vx = -v;
-                vy = 0;
-                break;
-            case Direction.RIGHT:
-                x = 0;
-                y = pos;
-                vx = v;
-                vy = 0;
-                break; 
-        }
+    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (mov: Movement) => Enemy): Event {
         return {
             ticks,
             planeFactory: () => plane({
-                direction, x, y, vx, vy
+                direction, pos, v
             })
         };
     }
