@@ -369,8 +369,6 @@ class Enemies {
     public static grayPlane = (mov: Movement) => Enemies.register(new GrayPlane(mov));
     public static bigPlane = (mov: Movement) => Enemies.register(new BigPlane(mov));
     public static bomberPlane = (mov: Movement) => Enemies.register(new BomberPlane(mov));
-    
-
 
     public static destroyAll(sprite: Sprite): void {
         Enemies.planes.forEach((enemy: Enemy) => {
@@ -385,7 +383,7 @@ class Enemies {
 class Player {
     private static readonly maxLifes = 5;
     private hits = 0
-    private bombs = 1;
+    private bombs = 0;
     private weaponLevel = 1
     private readonly sprite: Sprite;
     private readonly bombSprites: Sprite[];
