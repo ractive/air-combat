@@ -37,6 +37,7 @@ interface Enemy {
     getSprite(): Sprite;
     getScore(): number;
     gotHitBy(projectile?: Sprite): void;
+    getMovement(): Movement;
 }
 
 interface Movement {
@@ -48,10 +49,12 @@ interface Movement {
 abstract class Plane  {
     protected readonly sprite: Sprite;
     protected remainingHits: number = 1;
-    
+    protected movement: Movement;
+
     constructor(image: Image, mov: Movement) {
         this.sprite = sprites.create(image, SpriteKind.Enemy);
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
+        this.movement = mov;
 
         let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
         switch (mov.direction) {
@@ -95,6 +98,10 @@ abstract class Plane  {
 
     public getScore(): number {
         return 10;
+    }
+
+    public getMovement(): Movement {
+        return this.movement;
     }
     
     public gotHitBy(projectile: Sprite): void {
@@ -899,8 +906,26 @@ class Player {
             lifePowerUp.caught();
         });
 
-        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemiesprite, playerSprite) {
-            this.gotHit(playerSprite, enemiesprite)
+        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
+            this.gotHit(playerSprite, undefined);
+            scene.cameraShake(3, 500);
+            const enemy = Enemies.fromSprite(enemySprite);
+            enemy.gotHitBy(playerSprite);
+            const pushedBy: number = 30;
+            switch (enemy.getMovement().direction) {
+                case Direction.DOWN:
+                    playerSprite.y += pushedBy;
+                    break;
+                case Direction.UP:
+                    playerSprite.y -= pushedBy;
+                    break;
+                case Direction.LEFT:
+                    playerSprite.x -= pushedBy;
+                    break;
+                case Direction.RIGHT:
+                    playerSprite.x += pushedBy;
+                    break;
+            }            
         });
     }
 
@@ -929,7 +954,7 @@ class Player {
         }
     }
 
-    public gotHit(player: Sprite, otherSprite: Sprite) {
+    public gotHit(player: Sprite, otherSprite?: Sprite) {
         if (this.weaponLevel > 1) {
             this.weaponLevel -= 1;
             music.playSound("G5:1 C5:1");
@@ -938,7 +963,9 @@ class Player {
             music.playSound("G5:1 E5:1 C5:2");
         }
         player.startEffect(effects.spray, 200)
-        otherSprite.destroy(effects.fire, 100)
+        if (otherSprite) {
+            otherSprite.destroy(effects.fire, 100)
+        }
     }
 }
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemiesprite) {
@@ -1043,7 +1070,7 @@ class PowereUp {
         this.sprite.z = -1;
 
         game.onUpdateInterval(interval, function () {
-            if (Math.percentChance(chance)) {
+            if (game.runtime() > 5000 && Math.percentChance(chance)) {
                 this.sprite.setPosition(Math.randomRange(10, scene.screenWidth() - 10), Math.randomRange(10, scene.screenHeight() - 10))
                 this.show();
                 setTimeout(function () {
@@ -1119,9 +1146,9 @@ class StoryBook {
 
             this.single({ ticks: ticks += 30, v: 15, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
 
-            this.single({ ticks: ticks += 100, v: 35, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.bomberPlane });
+            this.single({ ticks: ticks += 100, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.bomberPlane });
 
-            this.single({ ticks: ticks += 20, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.greenPlane });
+            this.single({ ticks: ticks += 50, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.greenPlane });
             this.single({ ticks: ticks, v: 20, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
             this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.greenPlane });
             this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.greenPlane });
@@ -1199,6 +1226,7 @@ class StoryBook {
 
 scene.setBackgroundColor(9);
 const player = new Player();
+
 const powerUp = new PowereUp(img`
     . . . . . . . .
     . . 7 7 7 7 7 .
@@ -1215,12 +1243,13 @@ const bombPowerUp = new PowereUp(img`
     . b b b b . . c
 `, SpriteKind.BombPowerup, 10000, 50);
 const lifePowerUp = new PowereUp(img`
-    . 2 2 . 2 2 .
-    2 2 2 2 2 2 2
-    2 2 2 2 2 2 2
-    . 2 2 2 2 2 .
-    . . 2 2 2 . .
-    . . . 2 . . .
+    . 2 2 . . 2 2 .
+    2 2 2 2 2 2 3 2
+    2 2 2 2 2 3 2 2
+    c 2 2 2 2 2 2 2
+    . c 2 2 2 2 2 .
+    . . c 2 2 2 . .
+    . . . c 2 . . .
 `, SpriteKind.LifePowerup, 10000, 40);
 
 const storyBook = new StoryBook();
