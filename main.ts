@@ -361,6 +361,10 @@ class GrayPlane extends Plane implements EnemyPlane {
         projectile.ay = ay;
         projectile.setKind(SpriteKind.EnemyProjectile)
     }
+
+    public getScore(): number {
+        return 20;
+    }
 }
 
 class BigPlane extends Plane implements EnemyPlane {
