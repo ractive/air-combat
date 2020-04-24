@@ -798,6 +798,7 @@ class Enemies {
 }
 
 class Player {
+    private static readonly maxLifes = 5;
     private hits = 0
     private bombs = 1;
     private weaponLevel = 1
@@ -809,8 +810,14 @@ class Player {
         6 6 6 6 6 6 f f
         . 6 6 6 6 b f .
         . . b b b . . f
-    `;  
+    `;
+    private static readonly projectileImg = img`
+        1
+        1
+    `;
     constructor() {
+        info.setLife(Player.maxLifes);
+
         this.sprite = sprites.create(img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -888,7 +895,7 @@ class Player {
             bombPowerUp.caught();
         });
         sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
-            info.setLife(Math.min(info.life() + 1, 5));
+            info.setLife(Math.min(info.life() + 1, Player.maxLifes));
             lifePowerUp.caught();
         });
 
@@ -908,20 +915,17 @@ class Player {
     }
 
     public shoot() {
-        const projectileImg = img`
-            1
-            1
-        `
+        
         if (this.weaponLevel >= 1) {
-            sprites.createProjectileFromSprite(projectileImg, this.sprite, 0, -100)
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100)
         }
         if (this.weaponLevel >= 2) {
-            sprites.createProjectileFromSprite(projectileImg, this.sprite, -50, -87)
-            sprites.createProjectileFromSprite(projectileImg, this.sprite, 50, -87)
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -50, -87)
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 50, -87)
         }
         if (this.weaponLevel >= 3) {
-            sprites.createProjectileFromSprite(projectileImg, this.sprite, -87, -50)
-            sprites.createProjectileFromSprite(projectileImg, this.sprite, 87, -50)
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -87, -50)
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 87, -50)
         }
     }
 
@@ -1193,6 +1197,7 @@ class StoryBook {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+scene.setBackgroundColor(9);
 const player = new Player();
 const powerUp = new PowereUp(img`
     . . . . . . . .
@@ -1205,14 +1210,9 @@ const powerUp = new PowereUp(img`
     . . 7 7 7 7 7 .
 `, SpriteKind.Powerup, 3000, 50);
 const bombPowerUp = new PowereUp(img`
-    . . . . . . . .
-    . . 7 7 7 7 7 .
-    . 7 7 1 1 1 7 7
-    . 7 3 3 3 3 3 7
-    . 3 3 3 3 3 3 7
-    . 7 3 3 3 3 7 7
-    . 7 7 1 3 7 7 7
-    . . 7 7 7 7 7 .
+    . 6 6 6 6 . . c
+    6 6 6 6 6 6 c .
+    . b b b b . . c
 `, SpriteKind.BombPowerup, 10000, 50);
 const lifePowerUp = new PowereUp(img`
     . 2 2 . 2 2 .
@@ -1222,8 +1222,7 @@ const lifePowerUp = new PowereUp(img`
     . . 2 2 2 . .
     . . . 2 . . .
 `, SpriteKind.LifePowerup, 10000, 40);
-scene.setBackgroundColor(9);
-info.setLife(5);
+
 const storyBook = new StoryBook();
 storyBook.play();
 
