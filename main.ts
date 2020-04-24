@@ -1,5 +1,6 @@
 namespace SpriteKind {
     export const Powerup = SpriteKind.create()
+    export const BombPowerup = SpriteKind.create()
     export const EnemyProjectile = SpriteKind.create()
 }
 
@@ -29,12 +30,12 @@ class PlaneImages {
     }
 }
 
-interface EnemyPlane {
+interface Enemy {
     getImages(): PlaneImages;
     destroy(): void;
     getSprite(): Sprite;
     getScore(): number;
-    gotHitBy(projectile: Sprite): void;
+    gotHitBy(projectile?: Sprite): void;
 }
 
 interface PlaneDefinition {
@@ -69,8 +70,12 @@ abstract class Plane  {
     }
     
     public gotHitBy(projectile: Sprite): void {
-        this.remainingHits -= 1;
-        projectile.destroy();
+        if (projectile.kind() == SpriteKind.BombPowerup) {
+            this.remainingHits = 0;
+        } else {
+            this.remainingHits -= 1;
+        }
+
         if (this.remainingHits == 0) {
             this.sprite.destroy(effects.fire, 100);
             info.changeScoreBy(this.getScore())
@@ -79,7 +84,7 @@ abstract class Plane  {
     }
 }
 
-class GreenPlane extends Plane implements EnemyPlane {
+class GreenPlane extends Plane implements Enemy {
     public static readonly images: PlaneImages = new PlaneImages(
         img`
             . . . . . . . . . . . . . . . .
@@ -164,7 +169,7 @@ class GreenPlane extends Plane implements EnemyPlane {
     }
 }
 
-class RedPlane extends Plane implements EnemyPlane {
+class RedPlane extends Plane implements Enemy {
     static readonly images: PlaneImages = new PlaneImages(
         img`
             . . . . . . . . . . . . . . . .
@@ -253,7 +258,7 @@ class RedPlane extends Plane implements EnemyPlane {
     }
 }
 
-class GrayPlane extends Plane implements EnemyPlane {
+class GrayPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         d f d
         f 2 f
@@ -367,7 +372,7 @@ class GrayPlane extends Plane implements EnemyPlane {
     }
 }
 
-class BigPlane extends Plane implements EnemyPlane {
+class BigPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
@@ -501,7 +506,7 @@ class BigPlane extends Plane implements EnemyPlane {
     }
 }
 
-class BomberPlane extends Plane implements EnemyPlane {
+class BomberPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
@@ -705,22 +710,19 @@ class BomberPlane extends Plane implements EnemyPlane {
     }
 
     public getScore(): number {
-        return 30;
+        return 100;
     }
 }
 
-interface IEnemyPlane {
-    new(def: PlaneDefinition): EnemyPlane;
-}
-class EnemyPlanes {
-    private static planes: EnemyPlane[] = [];
+class Enemies {
+    private static planes: Enemy[] = [];
 
-    private static register<T extends EnemyPlane>(plane: T): T {
-        EnemyPlanes.planes.push(plane);
+    private static register<T extends Enemy>(plane: T): T {
+        Enemies.planes.push(plane);
         plane.getSprite().onDestroyed(() => {
             
             plane.destroy();
-            EnemyPlanes.planes = EnemyPlanes.planes.filter(
+            Enemies.planes = Enemies.planes.filter(
                 p => p.getSprite().id !== plane.getSprite().id
             );
             
@@ -729,40 +731,56 @@ class EnemyPlanes {
         return plane;
     }
 
-    public static fromSprite(sprite: Sprite): EnemyPlane {
-        return EnemyPlanes.planes.find(p => p.getSprite().id === sprite.id);
+    public static fromSprite(sprite: Sprite): Enemy {
+        return Enemies.planes.find(p => p.getSprite().id === sprite.id);
     }
 
     public static createRedPlane(def: PlaneDefinition): RedPlane {
-        return EnemyPlanes.register(new RedPlane(def));
+        return Enemies.register(new RedPlane(def));
     }
     public static createGreenPlane(def: PlaneDefinition): GreenPlane {
-        return EnemyPlanes.register(new GreenPlane(def));
+        return Enemies.register(new GreenPlane(def));
     }
     public static createGrayPlane(def: PlaneDefinition): GrayPlane {
-        return EnemyPlanes.register(new GrayPlane(def));
+        return Enemies.register(new GrayPlane(def));
     }
     public static createBigPlane(def: PlaneDefinition): BigPlane {
-        return EnemyPlanes.register(new BigPlane(def));
+        return Enemies.register(new BigPlane(def));
     }
     public static createBomberPlane(def: PlaneDefinition): BomberPlane {
-        return EnemyPlanes.register(new BomberPlane(def));
+        return Enemies.register(new BomberPlane(def));
     }
 
-    public static randomPlaneFactory(): { (def: PlaneDefinition): EnemyPlane} {
+    public static destroyAll(sprite: Sprite): void {
+        console.log("destroyAll!");
+        Enemies.planes.forEach((enemy: Enemy) => {
+            enemy.gotHitBy(sprite);
+        });
+        console.log("destroyAll done");
+    }
+
+    public static randomPlaneFactory(): { (def: PlaneDefinition): Enemy} {
         switch (Math.randomRange(0, 2)) {
-            case 0: return (def: PlaneDefinition) => EnemyPlanes.createRedPlane(def);
-            case 1: return (def: PlaneDefinition) => EnemyPlanes.createGreenPlane(def)
-            default: return (def: PlaneDefinition) => EnemyPlanes.createGrayPlane(def)
+            case 0: return (def: PlaneDefinition) => Enemies.createRedPlane(def);
+            case 1: return (def: PlaneDefinition) => Enemies.createGreenPlane(def)
+            default: return (def: PlaneDefinition) => Enemies.createGrayPlane(def)
         }
     }
 }
 
 class Player {
     private hits = 0
+    private bombs = 1;
     private weaponLevel = 1
     private readonly sprite: Sprite;
-
+    private readonly bombSprites: Sprite[];
+    private static readonly bombImage: Image = img`
+        . . 6 6 6 . . f
+        . 6 6 6 6 6 f .
+        6 6 6 6 6 6 f f
+        . 6 6 6 6 b f .
+        . . b b b . . f
+    `;  
     constructor() {
         this.sprite = sprites.create(img`
             . . . . . . . . . . . . . . . .
@@ -787,9 +805,39 @@ class Player {
         controller.moveSprite(this.sprite);
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
 
+        const bomb1 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
+        const bomb2 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
+        const bomb3 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
+
+        bomb1.setFlag(SpriteFlag.RelativeToCamera, false);
+        bomb2.setFlag(SpriteFlag.RelativeToCamera, false);
+        bomb3.setFlag(SpriteFlag.RelativeToCamera, false);
+        bomb1.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
+        bomb2.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
+        bomb3.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
+
+        bomb1.setPosition(5, scene.screenHeight() - 5);
+        bomb2.setPosition(14, scene.screenHeight() - 5);
+        bomb3.setPosition(23, scene.screenHeight() - 5);
+
+        this.bombSprites = [bomb1, bomb2, bomb3];
+        
+        this.drawBombs();
+
+        controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+            if (this.bombs > 0) {
+                this.bombs -= 1;
+                this.sprite.startEffect(effects.halo, 2000);
+                scene.cameraShake(10, 2000);
+                Enemies.destroyAll(bomb1);
+                this.drawBombs();
+            }
+        });
+
         controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
             this.shoot();
         });
+
         game.onUpdateInterval(250, function () {
             if (controller.B.isPressed()) {
                 this.shoot();
@@ -798,15 +846,28 @@ class Player {
 
         sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, playerSprite) {
             this.gotHit(playerSprite, enemyProjectile)
-        })
+        });
 
         sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
-            this.weaponLevel += 1;
+            this.weaponLevel = Math.min(this.weaponLevel + 1, 3);
             powerUp.caught();
-        })
-        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
-            this.gotHit(playerSprite, enemySprite)
-        })
+        });
+
+        sprites.onOverlap(SpriteKind.BombPowerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            this.bombs = Math.min(this.bombs + 1, 3);
+            this.drawBombs();
+            bombPowerUp.caught();
+        });
+
+        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemiesprite, playerSprite) {
+            this.gotHit(playerSprite, enemiesprite)
+        });
+    }
+
+    private drawBombs() {
+        this.bombSprites.forEach((sprite: Sprite, index: number) => {
+            sprite.setFlag(SpriteFlag.Invisible, this.bombs < index + 1);
+        });
     }
 
     public getSprite(): Sprite {
@@ -843,8 +904,8 @@ class Player {
         otherSprite.destroy(effects.fire, 100)
     }
 }
-sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemySprite) {
-    const plane = EnemyPlanes.fromSprite(enemySprite);
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemiesprite) {
+    const plane = Enemies.fromSprite(enemiesprite);
     if (plane) {
         plane.gotHitBy(projectile);
     }
@@ -858,23 +919,23 @@ game.onUpdateInterval(5000, function () {
             . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . b d b d . . . . d b . . . . . . . . .
-            . . . . . . . . . . . d d d d d . . . . d d d d d . . . . . . .
-            . . . . . . . b d b d b d d d d . . . . d d d d b . . . . . . .
-            . . . . . . d d d d 7 7 7 7 7 7 d . . . . d d d d b . . . . . .
-            . . . . . b d d 7 7 7 7 7 7 7 7 7 d . . . d d d d d d . . . . .
-            . . . . b d d 7 7 7 6 7 7 7 6 7 7 7 d . . d 7 7 7 d d b . . . .
-            . . . . d d 7 7 7 7 7 7 e 7 7 7 6 7 d . . d 7 7 7 7 d d d . . .
-            . . . . d d 7 7 7 7 7 7 7 6 7 6 7 7 7 d . d 7 a 7 7 d d d d . .
-            . . . b d d 7 7 e 7 5 6 7 7 7 7 7 d d d d d 7 7 7 7 7 7 d d . .
+            . . . . . . . . . . . d d d d d d b d d b d d d d . . . . . . .
+            . . . . . . . b d b d b d d d d d d d d d d d d b . . . . . . .
+            . . . . . . d d d d 7 6 7 6 7 7 d d d d d d d d d b . . . . . .
+            . . . . . b d d 7 7 7 7 6 7 7 7 7 d d d d d d d d d d . . . . .
+            . . . . b d d 7 7 7 6 7 7 7 6 7 7 7 d d d d 7 7 7 d d b . . . .
+            . . . . d d 7 7 7 6 6 7 e 7 7 7 6 7 d d d d 7 7 7 7 d d d . . .
+            . . . . d d 7 7 6 7 7 7 7 6 7 6 7 7 7 d d d 7 a 7 a d d d d . .
+            . . . b d d 7 7 e 7 5 6 7 7 7 7 7 d d d d d 7 7 a 7 7 7 d d . .
             . . b d d d 7 7 5 6 7 4 7 6 6 8 8 8 8 d d d d 7 7 7 7 7 7 b . .
             . . d d 7 7 7 e 7 7 6 7 7 7 8 9 8 9 8 8 d d d 7 7 7 7 7 7 d . .
             . . b d 7 7 7 7 7 7 7 6 7 7 8 8 9 8 9 8 8 d d 7 5 7 7 7 7 d . .
-            . . b d 7 7 7 6 7 6 7 7 7 7 8 9 8 9 8 9 8 d d 7 7 a 7 7 d d . .
-            . . d d 7 7 7 7 7 7 7 7 7 d d 8 8 8 8 8 d d d 7 5 7 7 7 d b . .
+            . . b d 7 7 7 6 7 6 7 7 7 7 8 9 8 9 8 9 8 d d 7 7 a 7 a d d . .
+            . . d d 7 7 7 7 7 7 7 7 7 d d 8 8 8 8 8 d d d 7 5 7 a 7 d b . .
             . . b d 7 7 7 7 7 7 7 7 d d d d d d d d d d d 7 7 7 7 7 d d . .
-            . . . d d d d d d d d 2 2 2 d d 2 2 2 d d d d 7 7 a 7 7 d d . .
-            . . . b d d d d d d d 2 2 2 d d 2 2 2 d d d d 7 7 7 7 7 d b . .
-            . . . b d d 7 7 7 7 7 2 2 2 d d 2 2 2 d d d d 7 7 a 7 7 d d . .
+            . . . d d d d d d d d d 2 2 d d d 2 2 d d d d 7 7 a 7 a d d . .
+            . . . b d d d d d d d 2 2 2 d d 2 2 2 d d d d 7 7 7 a 7 d b . .
+            . . . b d d 7 7 7 7 7 2 2 d d d 2 2 d d d d d 7 7 a 7 a d d . .
             . . . d d d 6 6 7 7 6 6 6 6 7 d d d d d d d d d 7 7 7 7 d d . .
             . . . b d d 6 6 6 6 6 6 6 6 6 6 7 d d d d d d d 7 7 7 d d b . .
             . . . . . d d 7 6 6 7 6 7 6 6 6 6 7 d d d e e d d d d d d d . .
@@ -905,10 +966,10 @@ game.onUpdateInterval(3000, function () {
         . . . 1 1 1 1 1 1 1 1 1 1 1 d 1 1 d 1 1 1 . 1 1 1 1 1 1 1 d . .
         . 1 1 1 1 1 1 d d 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 d d 1 1 1 d .
         . 1 1 1 1 1 d 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 .
-        . 1 1 1 1 1 1 1 1 1 1 1 1 1 d d d d 1 1 1 1 1 1 1 1 1 1 1 1 1 d
-        . . . 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 d
-        . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 d
-        . . . 1 1 1 d 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d
+        . 1 1 1 1 1 1 1 1 1 1 1 1 1 d d d d 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+        . . . 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1
+        . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1
+        . . . 1 1 1 d 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
         . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 1 1 1 1 .
         . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 . .
         . . . . 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 . . .
@@ -939,27 +1000,18 @@ game.onUpdateInterval(3000, function () {
 
 class PowereUp {
     private sprite: Sprite;
-    constructor() {
-        this.sprite = sprites.create(img`
-            . . . . . . . .
-            . . 7 7 7 7 7 .
-            . 7 7 1 1 1 7 7
-            . 7 7 1 7 1 7 7
-            . 7 7 1 1 1 7 7
-            . 7 7 1 7 7 7 7
-            . 7 7 1 7 7 7 7
-            . . 7 7 7 7 7 .
-        `, SpriteKind.Powerup);
+    constructor(img: Image, spriteKind: number, interval: number, chance: number) {
+        this.sprite = sprites.create(img, spriteKind);
         this.hide();
         this.sprite.z = -1;
 
-        game.onUpdateInterval(3000, function () {
-            if (Math.percentChance(50)) {
+        game.onUpdateInterval(interval, function () {
+            if (Math.percentChance(chance)) {
                 this.sprite.setPosition(Math.randomRange(10, scene.screenWidth() - 10), Math.randomRange(10, scene.screenHeight() - 10))
                 this.show();
                 setTimeout(function () {
                     this.hide();
-                }, 3000)
+                }, 2000)
             }
         })
     }
@@ -981,7 +1033,7 @@ class PowereUp {
 
 interface Event {
     ticks: number;
-    planeFactory(): EnemyPlane;
+    planeFactory(): Enemy;
 }
 
 interface EventProps {
@@ -991,16 +1043,16 @@ interface EventProps {
     pos: number,
     offset?: number,
     direction: Direction;
-    plane: (def: PlaneDefinition) => EnemyPlane
+    plane: (def: PlaneDefinition) => Enemy
 }
 
 class StoryBook {
     private storyBook: Event[];
-    private static readonly greenPlane = (def: PlaneDefinition) => EnemyPlanes.createGreenPlane(def);
-    private static readonly grayPlane = (def: PlaneDefinition) => EnemyPlanes.createGrayPlane(def);
-    private static readonly redPlane = (def: PlaneDefinition) => EnemyPlanes.createRedPlane(def);
-    private static readonly bigPlane = (def: PlaneDefinition) => EnemyPlanes.createBigPlane(def);
-    private static readonly bomberPlane = (def: PlaneDefinition) => EnemyPlanes.createBomberPlane(def);
+    private static readonly greenPlane = (def: PlaneDefinition) => Enemies.createGreenPlane(def);
+    private static readonly grayPlane = (def: PlaneDefinition) => Enemies.createGrayPlane(def);
+    private static readonly redPlane = (def: PlaneDefinition) => Enemies.createRedPlane(def);
+    private static readonly bigPlane = (def: PlaneDefinition) => Enemies.createBigPlane(def);
+    private static readonly bomberPlane = (def: PlaneDefinition) => Enemies.createBomberPlane(def);
 
     private setup() {
         this.storyBook = [];
@@ -1075,7 +1127,7 @@ class StoryBook {
         }
     }
 
-    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (def: PlaneDefinition) => EnemyPlane): Event {
+    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (def: PlaneDefinition) => Enemy): Event {
         let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
         switch (direction) {
             case Direction.DOWN:
@@ -1136,7 +1188,27 @@ class StoryBook {
 //////////////////////////////////////////////////////////////////////////////
 
 const player = new Player();
-const powerUp = new PowereUp();
+const powerUp = new PowereUp(img`
+    . . . . . . . .
+    . . 7 7 7 7 7 .
+    . 7 7 1 1 1 7 7
+    . 7 7 1 7 1 7 7
+    . 7 7 1 1 1 7 7
+    . 7 7 1 7 7 7 7
+    . 7 7 1 7 7 7 7
+    . . 7 7 7 7 7 .
+`, SpriteKind.Powerup, 3000, 50);
+const bombPowerUp = new PowereUp(img`
+    . . . . . . . .
+    . . 7 7 7 7 7 .
+    . 7 7 1 1 1 7 7
+    . 7 3 3 3 3 3 7
+    . 3 3 3 3 3 3 7
+    . 7 3 3 3 3 7 7
+    . 7 7 1 3 7 7 7
+    . . 7 7 7 7 7 .
+`, SpriteKind.BombPowerup, 10000, 50);
+
 scene.setBackgroundColor(9);
 info.setLife(5);
 const storyBook = new StoryBook();
