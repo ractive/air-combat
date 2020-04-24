@@ -501,23 +501,236 @@ class BigPlane extends Plane implements EnemyPlane {
     }
 }
 
+class BomberPlane extends Plane implements EnemyPlane {
+    private static readonly projectileImage: Image = img`
+        5 2 5
+        2 4 2
+        5 2 5
+    `;
+    public static readonly images: PlaneImages = new PlaneImages(
+        img`
+            . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 2 d d 2 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d 2 2 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 2 d d 2 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 6 2 2 6 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d d d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . c 6 6 6 6 b . . . c 6 6 6 6 b . . . d 8 8 d . . . c 6 6 6 6 b . . . c 6 6 6 6 b . . . .
+            . . . . . . d d . . . . . . . d d . . . . . d 8 8 d . . . . . d d . . . . . . . d d . . . . . .
+            . . . . . . d d . . . . . . . d d . . . . . d d d d . . . . . d d . . . . . . . d d . . . . . .
+            . d d d d d d d d d d d d d d d d d d d d d d 8 8 d d d d d d d d d d d d d d d d d d d d d b .
+            d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d d 8 d d 8 d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d b
+            d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d d d d d d d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d b
+            d d d d d d d d 6 d d d d 6 d d d d d d d d d d d d d d d d d d d d 6 d d d d 6 d d d d d d d b
+            . 3 3 3 3 3 3 d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d b b b b b b .
+            . . . . . . . 3 3 3 3 3 d d d d d d d d d d d d d d d d d d d d d d d d b b b b b . . . . . . .
+            . . . . . . . . . . . . 3 3 3 3 3 d d d d d d d d d d d d d d b b b b b . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . 3 3 3 3 d d d d d d b b b b . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . 3 d d d d b . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . d d d d d c d d d b . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . d d d 4 d d d c d d 4 d d b . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . d d d d d d c d d b b b . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . d d d . . . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d 3 . . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d 3 . . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d 3 . . . . . . . . . . . . . . .
+            . . . . . . . c . . d d d d 3 . . . . . . . . . . . . . . .
+            . . . . . . . 6 . . d 4 4 d 3 . . . . . . . . . . . . . . .
+            . . . . . . . 6 d d d 4 4 d 3 . . . . . . . . . . . . . . .
+            . . . . . . . 6 d d d d d d d 3 . . . . . . . . . . . . . .
+            . . . . . . . 6 . . d d d 6 d 3 . . . . . . . . . . . . . .
+            . . . . . . . b . . d d d d d 3 . . . . . . . . . . . . . .
+            . . . . . . . . . . d 4 4 d d 3 . . . . . . . . . . . . . .
+            . . . . . . . . . . d 4 4 d d 3 . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d d d 3 . . . . . . . . . . . . .
+            . . . . . . . c . . d d d 6 d d 3 . . . . . . . . . . . . .
+            . . . . . . . 6 . . d d d d d d 3 . . . . . . . . . . . . .
+            . . . . . . . 6 d d d 4 4 d d d 3 . . . . . . . . . . . . .
+            . . . . . . . 6 d d d 4 4 d d d 3 . . . . . . . . . . . . .
+            . . . . . . . 6 . . d d d d d d d 3 . . . . . . . . . d . .
+            . . . . . . . b . . d d d d d d d 3 . . . . . . . . . d d .
+            . . . . . . . . . . d d d d d d d 3 . . . . . . . . d d d .
+            . . . . . . . . . . d d d d d d d 3 . . . . . . . . d 4 d .
+            . . . . . . . . . . d d d d d d d d 3 . . . . . . . d d d .
+            . . 2 d 2 6 d d d d d 8 d d d d d d d d d d d d d d d d d .
+            . 2 d 2 d 2 d 8 8 d 8 d d d d d d d d d d d d d d d d d d 2
+            . 2 d 2 d 2 d 8 8 d 8 d d d d d d d d 6 6 6 6 6 6 6 c c c 2
+            . . 2 d 2 6 d d d d d 8 d d d d d d d d d d d d d d d d d .
+            . . . . . . . . . . d d d d d d d d b . . . . . . . d d d .
+            . . . . . . . . . . d d d d d d d b . . . . . . . . d 4 b .
+            . . . . . . . . . . d d d d d d d b . . . . . . . . b d b .
+            . . . . . . . c . . d d d d d d d b . . . . . . . . . d b .
+            . . . . . . . 6 . . d d d d d d d b . . . . . . . . . b . .
+            . . . . . . . 6 d d d 4 4 d d d b . . . . . . . . . . . . .
+            . . . . . . . 6 d d d 4 4 d d d b . . . . . . . . . . . . .
+            . . . . . . . 6 . . d d d d d d b . . . . . . . . . . . . .
+            . . . . . . . b . . d d d 6 d d b . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d d d b . . . . . . . . . . . . .
+            . . . . . . . . . . d 4 4 d d b . . . . . . . . . . . . . .
+            . . . . . . . . . . d 4 4 d d b . . . . . . . . . . . . . .
+            . . . . . . . c . . d d d d d b . . . . . . . . . . . . . .
+            . . . . . . . 6 . . d d d 6 d b . . . . . . . . . . . . . .
+            . . . . . . . 6 d d d d d d d b . . . . . . . . . . . . . .
+            . . . . . . . 6 d d d 4 4 d b . . . . . . . . . . . . . . .
+            . . . . . . . 6 . . d 4 4 d b . . . . . . . . . . . . . . .
+            . . . . . . . b . . d d d d b . . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d b . . . . . . . . . . . . . . .
+            . . . . . . . . . . d d d d b . . . . . . . . . . . . . . .
+            . . . . . . . . . . b d d d b . . . . . . . . . . . . . . .
+            . . . . . . . . . . . b b b . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . d d d d d d c d d b b b . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . d d d 4 d d d c d d 4 d d b . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . d d d d d c d d d b . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d 6 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . 3 d d d d b . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . 3 3 3 3 d d d d d d b b b b . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . 3 3 3 3 3 d d d d d d d d d d d d d d b b b b b . . . . . . . . . . . .
+            . . . . . . . 3 3 3 3 3 d d d d d d d d d d d d d d d d d d d d d d d d b b b b b . . . . . . .
+            . 3 3 3 3 3 3 d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d b b b b b b .
+            d d d d d d d d 6 d d d d 6 d d d d d d d d d d d d d d d d d d d d 6 d d d d 6 d d d d d d d b
+            d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d d d d d d d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d b
+            d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d d 8 d d 8 d d d d d 4 4 d d d 4 4 d d d 4 4 d d d d b
+            . d d d d d d d d d d d d d d d d d d d d d d 8 8 d d d d d d d d d d d d d d d d d d d d d b .
+            . . . . . . d d . . . . . . . d d . . . . . d d d d . . . . . d d . . . . . . . d d . . . . . .
+            . . . . . . d d . . . . . . . d d . . . . . d 8 8 d . . . . . d d . . . . . . . d d . . . . . .
+            . . . . c 6 6 6 6 b . . . c 6 6 6 6 b . . . d 8 8 d . . . c 6 6 6 6 b . . . c 6 6 6 6 b . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d d d d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 6 2 2 6 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 2 d d 2 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . d 2 2 d . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . 2 d d 2 . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        `,
+        img`
+            . . . . . . . . . . . . . . . . d d d . . . . . . . . . . .
+            . . . . . . . . . . . . . . . 3 d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . . 3 d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . . 3 d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . . 3 d d d d . . c . . . . . . .
+            . . . . . . . . . . . . . . . 3 d 4 4 d . . 6 . . . . . . .
+            . . . . . . . . . . . . . . . 3 d 4 4 d d d 6 . . . . . . .
+            . . . . . . . . . . . . . . 3 d d d d d d d 6 . . . . . . .
+            . . . . . . . . . . . . . . 3 d 6 d d d . . 6 . . . . . . .
+            . . . . . . . . . . . . . . 3 d d d d d . . b . . . . . . .
+            . . . . . . . . . . . . . . 3 d d 4 4 d . . . . . . . . . .
+            . . . . . . . . . . . . . . 3 d d 4 4 d . . . . . . . . . .
+            . . . . . . . . . . . . . 3 d d d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . 3 d d 6 d d d . . c . . . . . . .
+            . . . . . . . . . . . . . 3 d d d d d d . . 6 . . . . . . .
+            . . . . . . . . . . . . . 3 d d d 4 4 d d d 6 . . . . . . .
+            . . . . . . . . . . . . . 3 d d d 4 4 d d d 6 . . . . . . .
+            . . d . . . . . . . . . 3 d d d d d d d . . 6 . . . . . . .
+            . d d . . . . . . . . . 3 d d d d d d d . . b . . . . . . .
+            . d d d . . . . . . . . 3 d d d d d d d . . . . . . . . . .
+            . d 4 d . . . . . . . . 3 d d d d d d d . . . . . . . . . .
+            . d d d . . . . . . . 3 d d d d d d d d . . . . . . . . . .
+            . d d d d d d d d d d d d d d d d d 8 d d d d d 6 2 d 2 . .
+            2 d d d d d d d d d d d d d d d d d d 8 d 8 8 d 2 d 2 d 2 .
+            2 c c c 6 6 6 6 6 6 6 d d d d d d d d 8 d 8 8 d 2 d 2 d 2 .
+            . d d d d d d d d d d d d d d d d d 8 d d d d d 6 2 d 2 . .
+            . d d d . . . . . . . b d d d d d d d d . . . . . . . . . .
+            . b 4 d . . . . . . . . b d d d d d d d . . . . . . . . . .
+            . b d b . . . . . . . . b d d d d d d d . . . . . . . . . .
+            . b d . . . . . . . . . b d d d d d d d . . c . . . . . . .
+            . . b . . . . . . . . . b d d d d d d d . . 6 . . . . . . .
+            . . . . . . . . . . . . . b d d d 4 4 d d d 6 . . . . . . .
+            . . . . . . . . . . . . . b d d d 4 4 d d d 6 . . . . . . .
+            . . . . . . . . . . . . . b d d d d d d . . 6 . . . . . . .
+            . . . . . . . . . . . . . b d d 6 d d d . . b . . . . . . .
+            . . . . . . . . . . . . . b d d d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . b d d 4 4 d . . . . . . . . . .
+            . . . . . . . . . . . . . . b d d 4 4 d . . . . . . . . . .
+            . . . . . . . . . . . . . . b d d d d d . . c . . . . . . .
+            . . . . . . . . . . . . . . b d 6 d d d . . 6 . . . . . . .
+            . . . . . . . . . . . . . . b d d d d d d d 6 . . . . . . .
+            . . . . . . . . . . . . . . . b d 4 4 d d d 6 . . . . . . .
+            . . . . . . . . . . . . . . . b d 4 4 d . . 6 . . . . . . .
+            . . . . . . . . . . . . . . . b d d d d . . b . . . . . . .
+            . . . . . . . . . . . . . . . b d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . . b d d d d . . . . . . . . . .
+            . . . . . . . . . . . . . . . b d d d b . . . . . . . . . .
+            . . . . . . . . . . . . . . . . b b b . . . . . . . . . . .
+        `
+    );
+
+    private readonly interval: number;
+
+    constructor(def: PlaneDefinition) {
+        super(BomberPlane.images.getImage(def.direction), def);
+        this.remainingHits = 20;
+        this.shoot();
+        this.interval = setInterval(() => {
+            this.shoot();
+        }, 800);
+    }
+
+    public getImages(): PlaneImages {
+        return BigPlane.images;
+    }
+
+    public shoot(): void {
+        let projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, 0, 100);
+        projectile.setKind(SpriteKind.EnemyProjectile);
+
+        projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, -50, 87);
+        projectile.setKind(SpriteKind.EnemyProjectile);
+        
+        projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, 50, 87);
+        projectile.setKind(SpriteKind.EnemyProjectile);
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+    }
+
+    public getScore(): number {
+        return 30;
+    }
+}
+
 interface IEnemyPlane {
     new(def: PlaneDefinition): EnemyPlane;
 }
 class EnemyPlanes {
-    private static planes: any = {};
+    private static planes: EnemyPlane[] = [];
 
     private static register<T extends EnemyPlane>(plane: T): T {
-        EnemyPlanes.planes[plane.getSprite().id] = plane;
+        EnemyPlanes.planes.push(plane);
         plane.getSprite().onDestroyed(() => {
-            delete EnemyPlanes.planes[plane.getSprite().id];
+            
             plane.destroy();
+            EnemyPlanes.planes = EnemyPlanes.planes.filter(
+                p => p.getSprite().id !== plane.getSprite().id
+            );
+            
         });
+
         return plane;
     }
 
     public static fromSprite(sprite: Sprite): EnemyPlane {
-        return EnemyPlanes.planes[sprite.id];
+        return EnemyPlanes.planes.find(p => p.getSprite().id === sprite.id);
     }
 
     public static createRedPlane(def: PlaneDefinition): RedPlane {
@@ -531,6 +744,9 @@ class EnemyPlanes {
     }
     public static createBigPlane(def: PlaneDefinition): BigPlane {
         return EnemyPlanes.register(new BigPlane(def));
+    }
+    public static createBomberPlane(def: PlaneDefinition): BomberPlane {
+        return EnemyPlanes.register(new BomberPlane(def));
     }
 
     public static randomPlaneFactory(): { (def: PlaneDefinition): EnemyPlane} {
@@ -571,11 +787,11 @@ class Player {
         controller.moveSprite(this.sprite);
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
 
-        controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+        controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
             this.shoot();
         });
-        game.onUpdateInterval(150, function () {
-            if (controller.A.isPressed()) {
+        game.onUpdateInterval(250, function () {
+            if (controller.B.isPressed()) {
                 this.shoot();
             }
         });
@@ -628,7 +844,10 @@ class Player {
     }
 }
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemySprite) {
-    EnemyPlanes.fromSprite(enemySprite).gotHitBy(projectile);
+    const plane = EnemyPlanes.fromSprite(enemySprite);
+    if (plane) {
+        plane.gotHitBy(projectile);
+    }
 })
 
 
@@ -781,11 +1000,13 @@ class StoryBook {
     private static readonly grayPlane = (def: PlaneDefinition) => EnemyPlanes.createGrayPlane(def);
     private static readonly redPlane = (def: PlaneDefinition) => EnemyPlanes.createRedPlane(def);
     private static readonly bigPlane = (def: PlaneDefinition) => EnemyPlanes.createBigPlane(def);
+    private static readonly bomberPlane = (def: PlaneDefinition) => EnemyPlanes.createBomberPlane(def);
 
     private setup() {
         this.storyBook = [];
         let ticks = 0;
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 1; i++) {
+
             this.single(   { ticks: ticks += 10, v: 40, pos: 10, direction: Direction.LEFT, plane: StoryBook.greenPlane});
             this.single(   { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
             this.single(   { ticks: ticks += 20, v: 60, pos: 70, direction: Direction.RIGHT, plane: StoryBook.redPlane});
@@ -807,6 +1028,10 @@ class StoryBook {
             this.inARow(6, { ticks: ticks += 10, v: 30, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.redPlane });
             this.inARow(6, { ticks: ticks += 10, v: 80, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: StoryBook.grayPlane });
 
+            this.single({ ticks: ticks += 30, v: 15, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+
+            this.single({ ticks: ticks += 100, v: 35, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: StoryBook.bomberPlane });
+
             this.single({ ticks: ticks += 20, v: 20, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: StoryBook.greenPlane });
             this.single({ ticks: ticks, v: 20, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: StoryBook.greenPlane });
             this.single({ ticks: ticks, v: 20, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: StoryBook.greenPlane });
@@ -822,6 +1047,13 @@ class StoryBook {
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: StoryBook.bigPlane });
            
+            this.inARow(2, { ticks: ticks += 100, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+
+            this.inARow(3, { ticks: ticks += 200, v: 10, delay: 0, pos: 25, offset: 54, direction: Direction.DOWN, plane: StoryBook.bomberPlane });
+
+            this.inARow(2, { ticks: ticks += 50, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+            this.single({ ticks: ticks += 7, v: 70, delay: 0, pos: scene.screenWidth() / 2, offset: 0, direction: Direction.DOWN, plane: StoryBook.grayPlane });
+            this.inARow(2, { ticks: ticks += 7, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: StoryBook.grayPlane });
         }
     }
 
