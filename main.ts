@@ -712,6 +712,10 @@ class Player {
         bomb2.setPosition(14, scene.screenHeight() - 5);
         bomb3.setPosition(23, scene.screenHeight() - 5);
 
+        bomb1.z = 1000;
+        bomb2.z = 1000;
+        bomb3.z = 1000;
+
         this.bombSprites = [bomb1, bomb2, bomb3];
         
         this.drawBombs();
