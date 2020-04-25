@@ -48,24 +48,24 @@ abstract class BaseEnemy  {
         switch (mov.direction) {
             case Direction.DOWN:
                 x = mov.pos;
-                y = 0;
+                y = -image.height / 2 + 1;
                 vx = 0;
                 vy = mov.v;
                 break;
             case Direction.UP:
                 x = mov.pos;
-                y = scene.screenHeight();
+                y = scene.screenHeight() + image.height / 2 - 1;
                 vx = 0;
                 vy = -mov.v;
                 break;
             case Direction.LEFT:
-                x = scene.screenWidth();
+                x = scene.screenWidth() + image.width / 2 - 1;
                 y = mov.pos;
                 vx = -mov.v;
                 vy = 0;
                 break;
             case Direction.RIGHT:
-                x = 0;
+                x = -image.width / 2 + 1;
                 y = mov.pos;
                 vx = mov.v;
                 vy = 0;
@@ -120,7 +120,14 @@ abstract class Ship extends BaseEnemy {
     }
 }
 
-class GreenPlane extends BaseEnemy implements Enemy {
+abstract class Plane extends BaseEnemy {
+    constructor(image: Image, mov: Movement, hits: number = 6) {
+        super(image, mov, hits);
+        this.sprite.z = 15; // above the clouds
+    }
+}
+
+class GreenPlane extends Plane implements Enemy {
     private static readonly image: Image = img`
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
@@ -142,10 +149,11 @@ class GreenPlane extends BaseEnemy implements Enemy {
 
     constructor(mov: Movement) {
         super(rotate(GreenPlane.image, mov.direction), mov);
+        this.sprite.z = 8; // below the clouds
     }
 }
 
-class RedPlane extends BaseEnemy implements Enemy {
+class RedPlane extends Plane implements Enemy {
     private static readonly image: Image = img`
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
@@ -170,7 +178,7 @@ class RedPlane extends BaseEnemy implements Enemy {
     }
 }
 
-class GrayPlane extends BaseEnemy implements Enemy {
+class GrayPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         d f d
         f 2 f
@@ -224,7 +232,7 @@ class GrayPlane extends BaseEnemy implements Enemy {
     }
 }
 
-class BigPlane extends BaseEnemy implements Enemy {
+class BigPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
@@ -277,7 +285,7 @@ class BigPlane extends BaseEnemy implements Enemy {
     }
 }
 
-class BomberPlane extends BaseEnemy implements Enemy {
+class BomberPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
@@ -320,6 +328,7 @@ class BomberPlane extends BaseEnemy implements Enemy {
 
     constructor(mov: Movement) {
         super(rotate(BomberPlane.image, mov.direction), mov, 20);
+        this.sprite.z = 8; // below the clouds
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -346,7 +355,7 @@ class BomberPlane extends BaseEnemy implements Enemy {
     }
 }
 
-class SmallShip extends Ship implements Enemy {
+class Frigate extends Ship implements Enemy {
     private readonly interval: number;
     private static readonly projectileImage: Image = img`
         5 4 5
@@ -373,7 +382,7 @@ class SmallShip extends Ship implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(SmallShip.image, mov.direction), mov);
+        super(rotate(Frigate.image, mov.direction), mov);
         this.interval = setInterval(() => {
             this.shoot();
         }, 3000);
@@ -387,7 +396,7 @@ class SmallShip extends Ship implements Enemy {
         const v = 30;
         const vx = v * Math.cos(a) * Math.sign(dx);
         const vy = v * Math.sin(a) * Math.sign(dx);
-        const projectile = sprites.createProjectileFromSprite(SmallShip.projectileImage, this.sprite, vx, vy)
+        const projectile = sprites.createProjectileFromSprite(Frigate.projectileImage, this.sprite, vx, vy)
         projectile.setKind(SpriteKind.EnemyProjectile)
     }
 
@@ -397,6 +406,144 @@ class SmallShip extends Ship implements Enemy {
 
     public getScore() {
         return 20;
+    }
+}
+
+class BattleShip extends Ship implements Enemy {
+    private readonly interval: number;
+    private static readonly projectileImage: Image = img`
+        5 4 5
+        4 f 4
+        5 4 5
+    `;
+    private static readonly image: Image = img`
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . 6 6 6 6 . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . 6 6 6 6 . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . 6 6 d d 6 6 . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . 1 . 6 6 d d 6 6 . 1 . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . 6 6 d 6 6 d 6 6 . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . 1 . 6 6 d 6 6 d 6 6 . 1 . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . 6 6 d 6 6 6 6 d 6 6 . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . 1 . 6 6 d 6 6 6 6 d 6 6 . 1 . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . 6 6 d 6 6 c c 6 6 d 6 6 . . . . . . . . . . . . . .
+        . . . . . . . . . . . . 1 . 6 6 d 6 6 c c 6 6 d 6 6 . 1 . . . . . . . . . . . .
+        . . . . . . . . . . . . . 6 6 d 6 6 c b b c 6 6 d 6 6 . . . . . . . . . . . . .
+        . . . . . . . . . . . 1 . 6 6 d 6 6 c d d c 6 6 d 6 6 . 1 . . . . . . . . . . .
+        . . . . . . . . . . . . 6 6 d 6 6 c b d d b c 6 6 d 6 6 . . . . . . . . . . . .
+        . . . . . . . . . . 1 . 6 6 d 6 6 c d d d d c 6 6 d 6 6 . 1 . . . . . . . . . .
+        . . . . . . . . . . . 6 6 d 6 6 c b d d d d b c 6 d d 6 6 . . . . . . . . . . .
+        . . . . . . . . . 1 . 6 6 d 6 6 c d d b b d d c 6 6 d 6 6 . 1 . . . . . . . . .
+        . . . . . . . . . . 6 6 d 6 6 c b d d d d d d b c 6 6 d 6 6 . . . . . . . . . .
+        . . . . . . . . 1 . 6 6 d 6 6 c d d d b b d d d c 6 6 d 6 6 . 1 . . . . . . . .
+        . . . . . . . . . 6 6 d 6 6 c b d d d d d d d d b c 6 6 d 6 6 . . . . . . . . .
+        . . . . . . . 1 . 6 6 d 6 6 c d d d d d d d d d d c 6 6 d 6 6 . 1 . . . . . . .
+        . . . . . . . . 6 6 d 6 6 c b d d d d b a d d d d b c 6 6 d 6 6 . . . . . . . .
+        . . . . . . 1 . 6 6 d 6 6 c d d d b d b a d b d d d c 6 6 d 6 6 . 1 . . . . . .
+        . . . . . 1 . 6 6 d 6 6 c b d d d d d d d d d d d d b c 6 6 d 6 6 . 1 . . . . .
+        . . . . 1 . 1 6 6 d 6 6 c d d d d d d d d d d d d d d c 6 6 d 6 6 1 . 1 . . . .
+        . . . . . 1 . 6 d 6 6 c b d d d d d d b a d d d d d d b c 6 6 d 6 . 1 . . . . .
+        . . . . 1 . 6 6 d 6 6 c b d d b f b d b a d b f b d d b c 6 6 d 6 6 . 1 . . . .
+        . . . 1 . 1 6 6 d 6 6 c d d d d d d d d d d d d d d d d c 6 6 d 6 6 1 . 1 . . .
+        . . 1 . 1 . 6 d 6 6 c b d 4 e d d d d d d d d d d 4 e d b c 6 6 d 6 . 1 . 1 . .
+        . 1 . 1 . 6 6 d 6 6 c d d e e d d d 6 b b a d d d e e d d c 6 6 d 6 6 . 1 . 1 .
+        1 . 1 . 1 6 6 d 6 6 c d d 4 e d b d b f f b d b d 4 e d d c 6 6 d 6 6 1 . 1 . 1
+        . 1 . 1 . 6 d 6 6 c b d d e e d b d b f f b d b d e e d d b c 6 6 d 6 . 1 . 1 .
+        1 . 1 . 1 6 d 6 6 c b d d 4 e d b d 6 b b a d b d 4 e d d b c 6 6 d 6 1 . 1 . 1
+        . 1 . 1 . 6 d 6 6 c d d d d d d d d d d d d d d d d d d d d c 6 6 d 6 . 1 . 1 .
+        1 . 1 . 6 6 d 6 6 c d 4 e d d d d d 6 b b a d d d d d 4 e d c 6 6 d 6 6 . 1 . 1
+        . 1 . 1 6 6 d 6 6 c d 4 e d d b d d b f f b d d b d d 4 e d c 6 6 d 6 6 1 . 1 .
+        1 . 1 . 6 6 d 6 6 c d 4 e d d b d d b f f b d d b d d 4 e d c 6 6 d 6 6 . 1 . 1
+        . 1 . 1 6 6 d 6 6 c d e e d d b d d 6 b b a d d b d d e e d c 6 6 d 6 6 1 . 1 .
+        . . 1 . 6 6 d 6 6 c d 4 e d d d d d d d d d d d d d d 4 e d c 6 6 d 6 6 . 1 . .
+        . 1 . 1 6 6 d 6 6 c d 4 e d d 6 b b b b b b b b a d d 4 e d c 6 6 d 6 6 1 . 1 .
+        . . 1 . 6 6 d 6 6 c d 4 e d 6 b 8 8 8 8 8 8 8 8 b a d 4 e d c 6 6 d 6 6 . 1 . .
+        . 1 . 1 6 6 d 6 6 c d e e d 6 b b b b b b b b b b a d e e d c 6 6 d 6 6 1 . 1 .
+        . . 1 . 6 6 d 6 6 c d 4 e d 6 b b 2 2 b b 2 2 b b a d 4 e d c 6 6 d 6 6 . 1 . .
+        . 1 . 1 6 6 d 6 6 c d 4 e d 6 b b f f b b f f b b a d 4 e d c 6 6 d 6 6 1 . 1 .
+        . . 1 . 6 6 d 6 6 c d 4 e d 6 b b f f b b f f b b a d 4 e d c 6 6 d 6 6 . 1 . .
+        . . . 1 6 6 d 6 6 c d e e d 6 b b f f b b f f b b a d e e d c 6 6 d 6 6 1 . . .
+        . . . . 6 6 d 6 6 c d 4 e d 6 b 6 f f 6 6 f f 6 b a d 4 e d c 6 6 d 6 6 . . . .
+        . . 1 . 6 6 d 6 6 c d 4 e d 6 b 6 f f 6 6 f f 6 b a d 4 e d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d 4 e d 6 b 6 6 6 6 6 6 6 6 b a d 4 e d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d e e d 6 b 6 6 6 6 6 6 6 6 b a d e e d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d 4 e d d 6 b b b b b b b b a d d 4 e d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d 4 e d d d d d d d d d d d d d d 4 e d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d 4 e d f d f d f d f d f d f d d 4 e d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d e e d d f d f d f d f d f d f d 4 e d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d 4 e d f d f d f d f d f d f d d e e d c 6 6 d 6 6 . . . .
+        . . . . 6 6 d 6 6 c d 4 e d d f d f d f d f d f d f d 4 e d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d d d d f d f d f d f d f d f d d d d d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d 7 d d d d d d d d d d d d d d d d 7 d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d d d 6 b b b b b b b b b b b b a d d d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d d 6 b b b b b b b b b b b b b b a d d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d d 6 b 3 7 3 b b b b b b 3 7 3 b a d d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d d 6 b 7 7 7 b b 2 2 b b 7 7 7 b a d d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d d 6 b 3 7 3 b b b b b b 3 7 3 b a d d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d d 6 b b b b b 1 b 1 b b b b b b a d d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d d 6 b b 2 b b b 1 b 1 b b 2 b b a d d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d d 6 b b 2 b b 1 b 1 b b b 2 b b a d d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d d 6 b b b b b b 1 b 1 b b b b b a d d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c d d 6 b 3 1 3 b b b b b b 3 1 3 b a d d c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c d d 6 b 1 1 1 b b 2 2 b b 1 1 1 b a d d c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 d 6 6 c d d 6 b 3 1 3 b b b b b b 3 1 3 b a d d c 6 6 d 6 6 . 1 . .
+        . . . . 6 6 d 6 6 c b d 6 b b b b b b b b b b b b b b a d b c 6 6 d 6 6 . . . .
+        . . . 1 6 6 d 6 6 c b d d 6 b b b b b b b b b b b b a d d b c 6 6 d 6 6 1 . . .
+        . . 1 . 6 6 6 d 6 6 c d d d d d d d d d d d d d d d d d d c 6 6 d 6 6 6 . 1 . .
+        . . . . 1 6 6 d 6 6 c d d d 2 d d 1 1 1 1 1 1 d d 2 d d d c 6 6 d 6 6 1 . . . .
+        . . . 1 . 6 6 d 6 6 c d d d d d 1 d d d d d d 1 d d d d d c 6 6 d 6 6 . 1 . . .
+        . . . . . 6 6 d 6 6 c d d d d 1 d d d d d d d d 1 d d d d c 6 6 d 6 6 . . . . .
+        . . . . 1 6 6 d 6 6 c d f d 1 d d d 1 d d 1 d d d 1 d f d c 6 6 d 6 6 1 . . . .
+        . . . 1 . 6 6 d 6 6 c d f d 1 d d d 1 d d 1 d d d 1 d f d c 6 6 d 6 6 . 1 . . .
+        . . . . . 6 6 d 6 6 c d d d 1 d d d 1 1 1 1 d d d 1 d d d c 6 6 d 6 6 . . . . .
+        . . . . 1 6 6 d 6 6 c d d d 1 d d d 1 1 1 1 d d d 1 d d d c 6 6 d 6 6 1 . . . .
+        . . . 1 . 6 6 d 6 6 c d d d 1 d d d 1 d d 1 d d d 1 d d b c 6 6 d 6 6 . 1 . . .
+        . . . . . 6 6 d 6 6 c b d d 1 d d d 1 d d 1 d d d 1 d d b c 6 6 d 6 6 . . . . .
+        . . . . 1 6 6 d 6 6 c b d d d 1 d d d d d d d d 1 d d d c 6 6 d 6 6 6 1 . . . .
+        . . . 1 . 1 6 6 d 6 6 c d d d d 1 d d d d d d 1 d d d d c 6 6 d 6 6 1 . 1 . . .
+        . . . . 1 . 6 6 d 6 6 c d d 2 d d 1 1 1 1 1 1 d d 2 d d c 6 6 d 6 6 . 1 . . . .
+        . . . . . . 6 6 d 6 6 c d d d d d d d d d d d d d d d d c 6 6 d 6 6 . . . . . .
+        . . . . . 1 6 6 d 6 6 c d d d d d f f d d f f d d d d d c 6 6 d 6 6 1 . . . . .
+        . . . . 1 . 6 6 d 6 6 c b b b b b b b b b b b b b b b b c 6 6 d 6 6 . 1 . . . .
+        . . . . . . 6 6 d d d d d d d d d d d d d d d d d d d d d d d d 6 6 . . . . . .
+        . . . . . 1 6 6 d 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 d 6 6 1 . . . . .
+        . . . . 1 . . 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 . . . 1 . . .
+        . . . . . . . . 1 . 1 . 1 . . . . . . . . . . . . . . 1 . 1 . 1 . . . . . . . .
+        . . . . . . . 1 . 1 . 1 . 1 . . . . . . . . . . . . 1 . 1 . 1 . 1 . . . . . . .
+        . . . . . . . . 1 . 1 . 1 . . . . . . . . . . . . . . 1 . 1 . 1 . . . . . . . .
+        . . . . . . . 1 . 1 . 1 . 1 . . . . . . . . . . . . 1 . 1 . 1 . 1 . . . . . . .
+        . . . . . . . . 1 . 1 . 1 . . . . . . . . . . . . . . 1 . 1 . 1 . . . . . . . .
+        . . . . . . . 1 . 1 . 1 . 1 . . . . . . . . . . . . 1 . 1 . 1 . 1 . . . . . . .
+        . . . . . . . . 1 . 1 . 1 . . . . . . . . . . . . . . 1 . 1 . 1 . . . . . . . .
+        . . . . . . . 1 . 1 . 1 . 1 . . . . . . . . . . . . 1 . 1 . 1 . 1 . . . . . . .
+        . . . . . . . . 1 . 1 . 1 . . . . . . . . . . . . . . 1 . 1 . 1 . . . . . . . .
+    `;
+
+    constructor(mov: Movement) {
+        super(rotate(BattleShip.image, mov.direction), mov, 40);
+        this.interval = setInterval(() => {
+            this.shoot();
+        }, 5000);
+    }
+
+    private shoot(): void {
+        const dx: number = player.getSprite().x - this.sprite.x;
+        const dy: number = player.getSprite().y - this.sprite.y;
+        const a = Math.atan(dy / dx);
+
+        const v = 100;
+        const vx = v * Math.cos(a) * Math.sign(dx);
+        const vy = v * Math.sin(a) * Math.sign(dx);
+        const projectile = sprites.createProjectileFromSprite(BattleShip.projectileImage, this.sprite, vx, vy)
+        projectile.setKind(SpriteKind.EnemyProjectile)
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+    }
+
+    public getScore() {
+        return 300;
     }
 }
 
@@ -431,7 +578,8 @@ class Enemies {
     public static grayPlane = (mov: Movement) => Enemies.register(new GrayPlane(mov));
     public static bigPlane = (mov: Movement) => Enemies.register(new BigPlane(mov));
     public static bomberPlane = (mov: Movement) => Enemies.register(new BomberPlane(mov));
-    public static smallShip = (mov: Movement) => Enemies.register(new SmallShip(mov));
+    public static frigate = (mov: Movement) => Enemies.register(new Frigate(mov));
+    public static battleShip = (mov: Movement) => Enemies.register(new BattleShip(mov));
 
     public static destroyAll(sprite: Sprite): void {
         Enemies.planes.forEach((enemy: Enemy) => {
@@ -444,7 +592,7 @@ class Enemies {
 }
 
 class Player {
-    private static readonly maxLifes = 50;
+    private static readonly maxLifes = 5;
     private hits = 0
     private bombs = 2;
     private weaponLevel = 1
@@ -515,7 +663,7 @@ class Player {
 
         this.sprite = sprites.create(Player.planeStraight, SpriteKind.Player)
         this.sprite.y = 110;
-        this.sprite.z = 20;
+        this.sprite.z = 100;
 
         controller.moveSprite(this.sprite);
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
@@ -657,7 +805,7 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile,
     }
 })
 
-
+/*
 game.onUpdateInterval(5000, function () {
     if (Math.percentChance(10)) {
         const island = sprites.create(img`
@@ -693,55 +841,38 @@ game.onUpdateInterval(5000, function () {
             . . . . . . . . d b d d d d d d d d d d d d d d . . . . . . . .
             . . . . . . . . . . . d b d b d b d d b d d b d . . . . . . . .
             . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        `, SpriteKind.Food)
-        island.setPosition(Math.randomRange(10, 100), -10)
-        island.setVelocity(0, 5)
-        island.setFlag(SpriteFlag.Ghost, true)
-        island.z = -2
-        island.setFlag(SpriteFlag.AutoDestroy, true);
+        `, SpriteKind.Food);
+        island.setPosition(Math.randomRange(10, 100), -10);
+        island.setVelocity(0, 5);
+        island.setFlag(SpriteFlag.Ghost | SpriteFlag.AutoDestroy, true);
+        island.z = -2;
     }
 })
+*/
 
 game.onUpdateInterval(3000, function () {
     const cloud = sprites.create(img`
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
         . . . . . . . 1 1 1 d . . 1 1 1 1 . . . . . . . 1 1 1 d . . . .
         . . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 d . . . . . 1 1 1 1 1 . . . .
-        . . . 1 1 1 1 1 1 1 1 1 1 1 d 1 1 d 1 1 1 . 1 1 1 1 1 1 1 d . .
+        . . 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 d 1 1 1 . 1 1 1 1 1 1 1 d . .
         . 1 1 1 1 1 1 d d 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 d d 1 1 1 d .
         . 1 1 1 1 1 d 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 .
         . 1 1 1 1 1 1 1 1 1 1 1 1 1 d d d d 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-        . . . 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1
-        . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1
+        . . 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1
+        . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1
         . . . 1 1 1 d 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
         . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 1 1 1 1 .
         . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 d 1 1 . .
         . . . . 1 1 1 1 1 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 1 1 1 1 . . .
         . . . . . . . . . . 1 1 1 1 1 1 1 d 1 1 1 1 1 1 1 1 1 1 . . . .
-        . . . . . . . . . . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-    `, SpriteKind.Food)
-    cloud.setPosition(Math.randomRange(10, 100), -10)
-    cloud.setVelocity(0, Math.randomRange(20, 50))
-    cloud.setFlag(SpriteFlag.Ghost, true)
-    cloud.z = -1
-    cloud.setFlag(SpriteFlag.AutoDestroy, true);
+        . . . . . . . . . . . . 1 1 1 1 1 1 1 1 1 1 1 1 1 1 . . . . . .
+        . . . . . . . . . . . . . . 1 1 1 1 1 1 1 1 1 1 . . . . . . . .
+    `, SpriteKind.Food);
+
+    cloud.setPosition(Math.randomRange(6, 100), -6);
+    cloud.setVelocity(0, Math.randomRange(15, 20));
+    cloud.setFlag(SpriteFlag.Ghost | SpriteFlag.AutoDestroy, true);
+    cloud.z = 10;
 })
 
 class PowereUp {
@@ -749,7 +880,7 @@ class PowereUp {
     constructor(img: Image, spriteKind: number, interval: number, chance: number) {
         this.sprite = sprites.create(img, spriteKind);
         this.hide();
-        this.sprite.z = 10;
+        this.sprite.z = 5;
 
         game.onUpdateInterval(interval, function () {
             if (game.runtime() > 5000 && Math.percentChance(chance)) {
@@ -812,13 +943,19 @@ class StoryBook {
             this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: Enemies.bigPlane});
             this.inARow(2, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: Enemies.greenPlane });
 
-            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.DOWN, plane: Enemies.smallShip });
-            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.DOWN, plane: Enemies.smallShip });
+            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.DOWN, plane: Enemies.frigate });
+            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.DOWN, plane: Enemies.frigate });
 
             this.single({ ticks: ticks += 80, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.redPlane });
+
+            this.single({ ticks: ticks += 1, v: 15, pos: 40, direction: Direction.DOWN, plane: Enemies.battleShip });
+            this.inARow(2, { ticks: ticks += 50, v: 40, pos: 70, direction: Direction.LEFT, plane: Enemies.greenPlane });
+            this.inARow(2, { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: Enemies.greenPlane });
+            this.inARow(2, { ticks: ticks += 50, v: 40, pos: 70, direction: Direction.LEFT, plane: Enemies.greenPlane });
+            this.inARow(2, { ticks: ticks += 10, v: 40, pos: 30, direction: Direction.RIGHT, plane: Enemies.greenPlane });
 
             this.inARow(6, { ticks: ticks += 30, v: 15, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: Enemies.greenPlane });
             this.inARow(6, { ticks: ticks += 10, v: 30, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, plane: Enemies.redPlane });
@@ -838,8 +975,8 @@ class StoryBook {
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.grayPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.grayPlane });
 
-            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.UP, plane: Enemies.smallShip });
-            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.UP, plane: Enemies.smallShip });
+            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.UP, plane: Enemies.frigate });
+            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.UP, plane: Enemies.frigate });
 
             this.inARow(2, { ticks: ticks += 80, v: 50, pos: 50, direction: Direction.LEFT, plane: Enemies.greenPlane });
             this.inARow(2, { ticks: ticks += 20, v: 50, pos: 50, direction: Direction.RIGHT, plane: Enemies.redPlane });
@@ -850,8 +987,8 @@ class StoryBook {
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
 
-            this.inARow(3, { ticks: ticks += 50, v: 10, delay: 0, pos: 20, offset: 30, direction: Direction.LEFT, plane: Enemies.smallShip });
-            this.inARow(3, { ticks: ticks, v: 10, delay: 0, pos: 30, offset: 30, direction: Direction.RIGHT, plane: Enemies.smallShip });
+            this.inARow(3, { ticks: ticks += 50, v: 10, delay: 0, pos: 20, offset: 30, direction: Direction.LEFT, plane: Enemies.frigate });
+            this.inARow(3, { ticks: ticks, v: 10, delay: 0, pos: 30, offset: 30, direction: Direction.RIGHT, plane: Enemies.frigate });
 
             this.inARow(2, { ticks: ticks += 120, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
