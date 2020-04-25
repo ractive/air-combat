@@ -7,12 +7,41 @@ namespace SpriteKind {
 
 enum Direction { UP, LEFT, DOWN, RIGHT };
 
-function rotate(image: Image, direction: Direction): Image {
+function transpose(img: Image): Image {
+    const result = image.create(img.height, img.width);
+    for (let x = 0; x < img.width; x++) {
+        for (let y = 0; y < img.height; y++) {
+            result.setPixel(y, x, img.getPixel(x, y));
+        }
+    }
+    return result;
+}
+
+function rotateImage(img: Image, deg: number): Image {
+    if (deg == -90 || deg == 270) {
+        const r = transpose(img);
+        r.flipY();
+        return r;
+    } else if (deg == 180 || deg == -180) {
+        const r = img.clone();
+        r.flipX();
+        r.flipY();
+        return r;
+    } else if (deg == 90) {
+        const r = transpose(img);
+        r.flipX();
+        return r;
+    } else {
+        return img;
+    }
+}
+
+function rotate(img: Image, direction: Direction): Image {
     switch (direction) {
-        case Direction.UP: return image;
-        case Direction.DOWN: return image.rotated(180);
-        case Direction.LEFT: return image.rotated(270);
-        case Direction.RIGHT: return image.rotated(90);
+        case Direction.UP: return img;
+        case Direction.DOWN: return rotateImage(img, 180);
+        case Direction.LEFT: return rotateImage(img, 270);
+        case Direction.RIGHT: return rotateImage(img, 90);
     }
 }
 
@@ -38,7 +67,7 @@ abstract class BaseEnemy  {
 
 
     constructor(image: Image, mov: Movement, hits: number = 1) {
-        this.sprite = sprites.create(image, SpriteKind.Enemy);
+        this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
         this.movement = mov;
         this.remainingHits = hits;
@@ -48,24 +77,24 @@ abstract class BaseEnemy  {
         switch (mov.direction) {
             case Direction.DOWN:
                 x = mov.pos;
-                y = -image.height / 2 + 1;
+                y = 0 //-image.height / 2 + 5;
                 vx = 0;
                 vy = mov.v;
                 break;
             case Direction.UP:
                 x = mov.pos;
-                y = scene.screenHeight() + image.height / 2 - 1;
+                y = scene.screenHeight() //scene.screenHeight() + image.height / 2 - 5;
                 vx = 0;
                 vy = -mov.v;
                 break;
             case Direction.LEFT:
-                x = scene.screenWidth() + image.width / 2 - 1;
+                x = scene.screenWidth() //scene.screenWidth() + image.width / 2 - 5;
                 y = mov.pos;
                 vx = -mov.v;
                 vy = 0;
                 break;
             case Direction.RIGHT:
-                x = -image.width / 2 + 1;
+                x = 0 //-image.width / 2 + 5;
                 y = mov.pos;
                 vx = mov.v;
                 vy = 0;
@@ -121,7 +150,7 @@ abstract class Ship extends BaseEnemy {
 }
 
 abstract class Plane extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 6) {
+    constructor(image: Image, mov: Movement, hits: number = 1) {
         super(image, mov, hits);
         this.sprite.z = 15; // above the clouds
     }
@@ -148,7 +177,7 @@ class GreenPlane extends Plane implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(GreenPlane.image, mov.direction), mov);
+        super(GreenPlane.image, mov);
         this.sprite.z = 8; // below the clouds
     }
 }
@@ -174,7 +203,7 @@ class RedPlane extends Plane implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(RedPlane.image, mov.direction), mov);
+        super(RedPlane.image, mov);
     }
 }
 
@@ -205,7 +234,7 @@ class GrayPlane extends Plane implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(GrayPlane.image, mov.direction), mov);
+        super(GrayPlane.image, mov, 2);
         this.shoot();
     }
 
@@ -264,7 +293,7 @@ class BigPlane extends Plane implements Enemy {
     private readonly interval: number;
 
     constructor(mov: Movement) {
-        super(rotate(BigPlane.image, mov.direction), mov, 3);
+        super(BigPlane.image, mov, 3);
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -327,7 +356,7 @@ class BomberPlane extends Plane implements Enemy {
     private readonly interval: number;
 
     constructor(mov: Movement) {
-        super(rotate(BomberPlane.image, mov.direction), mov, 20);
+        super(BomberPlane.image, mov, 20);
         this.sprite.z = 8; // below the clouds
         this.shoot();
         this.interval = setInterval(() => {
@@ -382,7 +411,7 @@ class Frigate extends Ship implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(Frigate.image, mov.direction), mov);
+        super(Frigate.image, mov);
         this.interval = setInterval(() => {
             this.shoot();
         }, 3000);
@@ -520,7 +549,7 @@ class BattleShip extends Ship implements Enemy {
     `;
 
     constructor(mov: Movement) {
-        super(rotate(BattleShip.image, mov.direction), mov, 40);
+        super(BattleShip.image, mov, 40);
         this.interval = setInterval(() => {
             this.shoot();
         }, 5000);
@@ -553,24 +582,23 @@ function isShip(toBeDetermined: Enemy): toBeDetermined is Ship {
 }
 
 class Enemies {
-    private static planes: Enemy[] = [];
+    private static enemies: Enemy[] = [];
 
-    private static register<T extends Enemy>(plane: T): T {
-        Enemies.planes.push(plane);
+    private static register(plane: Enemy): void {
+
+        Enemies.enemies.push(plane);
+        
         plane.getSprite().onDestroyed(() => {
-            
             plane.destroy();
-            Enemies.planes = Enemies.planes.filter(
+            Enemies.enemies = Enemies.enemies.filter(
                 p => p.getSprite().id !== plane.getSprite().id
             );
-            
         });
-
-        return plane;
+        
     }
 
     public static fromSprite(sprite: Sprite): Enemy {
-        return Enemies.planes.find(p => p.getSprite().id === sprite.id);
+        return Enemies.enemies.find(e => e.getSprite().id === sprite.id);
     }
 
     public static redPlane = (mov: Movement) => Enemies.register(new RedPlane(mov));
@@ -582,7 +610,7 @@ class Enemies {
     public static battleShip = (mov: Movement) => Enemies.register(new BattleShip(mov));
 
     public static destroyAll(sprite: Sprite): void {
-        Enemies.planes.forEach((enemy: Enemy) => {
+        Enemies.enemies.forEach((enemy: Enemy) => {
             enemy.gotHitBy(sprite);
         });
         sprites.allOfKind(SpriteKind.EnemyProjectile).forEach((projectile: Sprite) => {
@@ -594,7 +622,7 @@ class Enemies {
 class Player {
     private static readonly maxLifes = 5;
     private hits = 0
-    private bombs = 2;
+    private bombs = 0;
     private weaponLevel = 1
     private readonly sprite: Sprite;
     private readonly bombSprites: Sprite[];
@@ -910,7 +938,7 @@ class PowereUp {
 
 interface Event {
     ticks: number;
-    planeFactory(): Enemy;
+    createEnemy(): void;
 }
 
 interface EventProps {
@@ -920,7 +948,7 @@ interface EventProps {
     pos: number,
     offset?: number,
     direction: Direction;
-    plane: (mov: Movement) => Enemy
+    plane: (mov: Movement) => void
 }
 
 class StoryBook {
@@ -1019,10 +1047,10 @@ class StoryBook {
         }
     }
 
-    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (mov: Movement) => Enemy): Event {
+    private createEvent(ticks: number, direction: Direction, pos: number, v: number, plane: (mov: Movement) => void): Event {
         return {
             ticks,
-            planeFactory: () => plane({
+            createEnemy: () => plane({
                 direction, pos, v
             })
         };
@@ -1035,7 +1063,7 @@ class StoryBook {
             ticks++;
             while (this.storyBook.length > 0 && this.storyBook[0].ticks <= ticks) {
                 const event = this.storyBook.shift();
-                event.planeFactory();
+                event.createEnemy();
                 if (this.storyBook.length == 0) {
                     setTimeout(function () {
                         game.over(true);
