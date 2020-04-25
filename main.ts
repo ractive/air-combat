@@ -440,7 +440,7 @@ class Enemies {
 }
 
 class Player {
-    private static readonly maxLifes = 5;
+    private static readonly maxLifes = 50;
     private hits = 0
     private bombs = 0;
     private weaponLevel = 1
@@ -837,12 +837,19 @@ class StoryBook {
             this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.UP, plane: Enemies.smallShip });
             this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.UP, plane: Enemies.smallShip });
 
+            this.inARow(2, { ticks: ticks += 80, v: 50, pos: 50, direction: Direction.LEFT, plane: Enemies.greenPlane });
+            this.inARow(2, { ticks: ticks += 20, v: 50, pos: 50, direction: Direction.RIGHT, plane: Enemies.redPlane });
+
             this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: Enemies.grayPlane });
             this.inARow(3, { ticks: ticks, delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: Enemies.grayPlane });
+
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
-           
-            this.inARow(2, { ticks: ticks += 100, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: Enemies.bomberPlane });
+
+            this.inARow(3, { ticks: ticks += 50, v: 10, delay: 0, pos: 20, offset: 30, direction: Direction.LEFT, plane: Enemies.smallShip });
+            this.inARow(3, { ticks: ticks, v: 10, delay: 0, pos: 30, offset: 30, direction: Direction.RIGHT, plane: Enemies.smallShip });
+
+            this.inARow(2, { ticks: ticks += 120, v: 10, delay: 25, pos: 50, offset: 70, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
             this.inARow(3, { ticks: ticks += 200, v: 10, delay: 0, pos: 25, offset: 54, direction: Direction.DOWN, plane: Enemies.bomberPlane });
 
@@ -891,7 +898,7 @@ class StoryBook {
                 if (this.storyBook.length == 0) {
                     setTimeout(function () {
                         game.over(true);
-                    }, 20000);
+                    }, 10000);
                 }
             }
         })
