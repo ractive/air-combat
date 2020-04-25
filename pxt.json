@@ -1,18 +1,21 @@
 {
     "name": "Air Combat",
+    "version": "0.0.2",
+    "description": "",
     "dependencies": {
         "device": "*",
         "light": "*"
     },
-    "description": "",
     "files": [
         "main.blocks",
         "main.ts",
         "README.md"
     ],
-    "preferredEditor": "tsprj",
     "testFiles": [
         "test.ts"
     ],
-    "version": "0.0.2"
+    "supportedTargets": [
+        "arcade"
+    ],
+    "preferredEditor": "tsprj"
 }
