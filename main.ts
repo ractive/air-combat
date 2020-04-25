@@ -30,7 +30,7 @@ interface Movement {
     v: number;
 }
 
-abstract class Plane  {
+abstract class BaseEnemy  {
     protected readonly sprite: Sprite;
     protected remainingHits: number = 1;
     protected hits: number = 1;
@@ -44,7 +44,7 @@ abstract class Plane  {
         this.remainingHits = hits;
         this.hits = hits;
 
-        let x: number = 0, y: number = 0, vx: number = 0, vy: number = 0;
+        let x: number, y: number, vx: number, vy: number;
         switch (mov.direction) {
             case Direction.DOWN:
                 x = mov.pos;
@@ -113,7 +113,14 @@ abstract class Plane  {
     }
 }
 
-class GreenPlane extends Plane implements Enemy {
+abstract class Ship extends BaseEnemy {
+    constructor(image: Image, mov: Movement, hits: number = 5) {
+        super(image, mov, hits);
+        this.sprite.z = 0;
+    }
+}
+
+class GreenPlane extends BaseEnemy implements Enemy {
     private static readonly image: Image = img`
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
@@ -138,8 +145,8 @@ class GreenPlane extends Plane implements Enemy {
     }
 }
 
-class RedPlane extends Plane implements Enemy {
-    static readonly image: Image = img`
+class RedPlane extends BaseEnemy implements Enemy {
+    private static readonly image: Image = img`
         . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . .
         . . . . . 9 9 9 8 9 9 9 . . . .
@@ -161,13 +168,9 @@ class RedPlane extends Plane implements Enemy {
     constructor(mov: Movement) {
         super(rotate(RedPlane.image, mov.direction), mov);
     }
-
-    public shoot(): void {
-        // does not shoot
-    }
 }
 
-class GrayPlane extends Plane implements Enemy {
+class GrayPlane extends BaseEnemy implements Enemy {
     private static readonly projectileImage: Image = img`
         d f d
         f 2 f
@@ -198,7 +201,7 @@ class GrayPlane extends Plane implements Enemy {
         this.shoot();
     }
 
-    public shoot(): void {
+    private shoot(): void {
         let vx =  50 * Math.sign(this.sprite.vx);
         let vy =  50 * Math.sign(this.sprite.vy);
         let ax = 200 * Math.sign(this.sprite.vx);
@@ -221,13 +224,13 @@ class GrayPlane extends Plane implements Enemy {
     }
 }
 
-class BigPlane extends Plane implements Enemy {
+class BigPlane extends BaseEnemy implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
         5 2 5
     `;
-    public static readonly image: Image = img`
+    private static readonly image: Image = img`
         . . . . . . . . . . . 2 . . . . . . . . . . . .
         . . . . . . . . . . 2 7 2 . . . . . . . . . . .
         . . . . 1 9 9 9 b . 7 2 7 . 1 9 9 9 b . . . . .
@@ -260,7 +263,7 @@ class BigPlane extends Plane implements Enemy {
         }, 1200);
     }
 
-    public shoot(): void {
+    private shoot(): void {
         const projectile = sprites.createProjectileFromSprite(BigPlane.projectileImage, this.sprite, 0, 70)
         projectile.setKind(SpriteKind.EnemyProjectile)
     }
@@ -274,13 +277,13 @@ class BigPlane extends Plane implements Enemy {
     }
 }
 
-class BomberPlane extends Plane implements Enemy {
+class BomberPlane extends BaseEnemy implements Enemy {
     private static readonly projectileImage: Image = img`
         5 2 5
         2 4 2
         5 2 5
     `;
-    public static readonly image: Image = img`
+    private static readonly image: Image = img`
         . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . . . . . . . . . 2 2 . . . . . . . . . . . . . . . . . . . . . . .
         . . . . . . . . . . . . . . . . . . . . . . 2 d d 2 . . . . . . . . . . . . . . . . . . . . . .
@@ -343,6 +346,61 @@ class BomberPlane extends Plane implements Enemy {
     }
 }
 
+class SmallShip extends Ship implements Enemy {
+    private readonly interval: number;
+    private static readonly projectileImage: Image = img`
+        5 4 5
+        4 f 4
+        5 4 5
+    `;
+    private static readonly image: Image = img`
+        . . . . . . . c c c . . . . . .
+        . . . . . . c 6 6 6 c . . . . .
+        . . . . . . c 6 6 6 c . . . . .
+        . . . . . c c 6 6 6 c c . . . .
+        . . . . . c 6 6 6 6 6 c . . . .
+        . . . . . c 6 8 8 8 6 c . . . .
+        . . . . . c 6 b b b 6 c . . . .
+        . . . . . c 6 b f b 6 c . . . .
+        . . . . . c 6 b f b 6 c . . . .
+        . . . . . c 6 b b b 6 c . . . .
+        . . . . . c 6 e e e 6 c . . . .
+        . . . . . c 6 e e e 6 c . . . .
+        . . . . . c 6 6 6 6 6 c . . . .
+        . . . . . c c c c c c c . . . .
+        . . . . . . 1 . 1 . 1 . . . . .
+        . . . . . 1 . 1 . 1 . 1 . . . .
+    `;
+
+    constructor(mov: Movement) {
+        super(rotate(SmallShip.image, mov.direction), mov);
+        this.interval = setInterval(() => {
+            this.shoot();
+        }, 3000);
+    }
+
+    private shoot(): void {
+        const dx: number = player.getSprite().x - this.sprite.x;
+        const dy: number = player.getSprite().y - this.sprite.y;
+        const a = Math.atan(dy/dx);
+
+        const v = 30;
+        const vx = v * Math.cos(a) * Math.sign(dx);
+        const vy = v * Math.sin(a) * Math.sign(dx);
+        const projectile = sprites.createProjectileFromSprite(SmallShip.projectileImage, this.sprite, vx, vy)
+        projectile.setKind(SpriteKind.EnemyProjectile)
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+    }
+}
+
+
+function isShip(toBeDetermined: Enemy): toBeDetermined is Ship {
+    return toBeDetermined instanceof Ship;
+}
+
 class Enemies {
     private static planes: Enemy[] = [];
 
@@ -369,6 +427,7 @@ class Enemies {
     public static grayPlane = (mov: Movement) => Enemies.register(new GrayPlane(mov));
     public static bigPlane = (mov: Movement) => Enemies.register(new BigPlane(mov));
     public static bomberPlane = (mov: Movement) => Enemies.register(new BomberPlane(mov));
+    public static smallShip = (mov: Movement) => Enemies.register(new SmallShip(mov));
 
     public static destroyAll(sprite: Sprite): void {
         Enemies.planes.forEach((enemy: Enemy) => {
@@ -448,12 +507,12 @@ class Player {
     `;
 
     constructor() {
-
         info.setLife(Player.maxLifes);
 
         this.sprite = sprites.create(Player.planeStraight, SpriteKind.Player)
-
         this.sprite.y = 110;
+        this.sprite.z = 20;
+
         controller.moveSprite(this.sprite);
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
 
@@ -523,9 +582,13 @@ class Player {
         });
 
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
+            const enemy = Enemies.fromSprite(enemySprite);
+            if (isShip(enemy)) {
+                // no collision with a ship
+                return;
+            }
             this.gotHit(playerSprite, undefined);
             scene.cameraShake(3, 500);
-            const enemy = Enemies.fromSprite(enemySprite);
             enemy.gotHitBy(playerSprite);
             const pushedBy: number = 30;
             switch (enemy.getMovement().direction) {
@@ -556,7 +619,6 @@ class Player {
     }
 
     public shoot() {
-        
         if (this.weaponLevel >= 1) {
             sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100)
         }
@@ -683,7 +745,7 @@ class PowereUp {
     constructor(img: Image, spriteKind: number, interval: number, chance: number) {
         this.sprite = sprites.create(img, spriteKind);
         this.hide();
-        this.sprite.z = -1;
+        this.sprite.z = 10;
 
         game.onUpdateInterval(interval, function () {
             if (game.runtime() > 5000 && Math.percentChance(chance)) {
@@ -746,7 +808,10 @@ class StoryBook {
             this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 20, direction: Direction.DOWN, plane: Enemies.bigPlane});
             this.inARow(2, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 0, direction: Direction.DOWN, plane: Enemies.greenPlane });
 
-            this.single({ ticks: ticks += 10, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.redPlane });
+            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.DOWN, plane: Enemies.smallShip });
+            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.DOWN, plane: Enemies.smallShip });
+
+            this.single({ ticks: ticks += 80, v: 60, pos: scene.screenHeight() / 2, direction: Direction.LEFT, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenHeight() / 2, direction: Direction.RIGHT, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.redPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.redPlane });
@@ -769,6 +834,9 @@ class StoryBook {
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.DOWN, plane: Enemies.grayPlane });
             this.single({ ticks: ticks, v: 60, pos: scene.screenWidth() / 2, direction: Direction.UP, plane: Enemies.grayPlane });
 
+            this.single({ ticks: ticks += 30, v: 5, pos: 50, direction: Direction.UP, plane: Enemies.smallShip });
+            this.single({ ticks: ticks += 10, v: 5, pos: 100, direction: Direction.UP, plane: Enemies.smallShip });
+
             this.inARow(3, { ticks: ticks += 30, delay: 4, v: 30, pos: 40, offset: 30, direction: Direction.LEFT, plane: Enemies.grayPlane });
             this.inARow(3, { ticks: ticks, delay: 4, v: 30, pos: 25, offset: 30, direction: Direction.RIGHT, plane: Enemies.grayPlane });
             this.inARow(3, { ticks: ticks += 30, v: 10, pos: 60, offset: 20, direction: Direction.UP, plane: Enemies.bigPlane });
@@ -781,6 +849,7 @@ class StoryBook {
             this.inARow(2, { ticks: ticks += 50, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: Enemies.grayPlane });
             this.single({ ticks: ticks += 7, v: 70, delay: 0, pos: scene.screenWidth() / 2, offset: 0, direction: Direction.DOWN, plane: Enemies.grayPlane });
             this.inARow(2, { ticks: ticks += 7, v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, plane: Enemies.grayPlane });
+
         }
     }
 
@@ -822,7 +891,7 @@ class StoryBook {
                 if (this.storyBook.length == 0) {
                     setTimeout(function () {
                         game.over(true);
-                    }, 10000);
+                    }, 20000);
                 }
             }
         })
