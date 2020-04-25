@@ -85,7 +85,7 @@ abstract class BaseEnemy  {
     }
 
     public getScore(): number {
-        return 10;
+        return 10;  
     }
 
     public getMovement(): Movement {
@@ -94,7 +94,7 @@ abstract class BaseEnemy  {
     
     public gotHitBy(projectile: Sprite): void {
         if (projectile.kind() === SpriteKind.BombPowerup) {
-            this.remainingHits = 0;
+            this.remainingHits = Math.max(this.remainingHits - 11, 0);
         } else {
             this.remainingHits -= 1;
         }
@@ -114,7 +114,7 @@ abstract class BaseEnemy  {
 }
 
 abstract class Ship extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 5) {
+    constructor(image: Image, mov: Movement, hits: number = 6) {
         super(image, mov, hits);
         this.sprite.z = 0;
     }
@@ -394,6 +394,10 @@ class SmallShip extends Ship implements Enemy {
     public destroy() {
         clearInterval(this.interval);
     }
+
+    public getScore() {
+        return 20;
+    }
 }
 
 
@@ -442,7 +446,7 @@ class Enemies {
 class Player {
     private static readonly maxLifes = 50;
     private hits = 0
-    private bombs = 0;
+    private bombs = 2;
     private weaponLevel = 1
     private readonly sprite: Sprite;
     private readonly bombSprites: Sprite[];
