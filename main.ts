@@ -688,7 +688,8 @@ class Player {
 
     constructor() {
         info.setLife(Player.maxLifes);
-
+        this.showLifeLights();
+        
         this.sprite = sprites.create(Player.planeStraight, SpriteKind.Player)
         this.sprite.y = 110;
         this.sprite.z = 100;
@@ -758,6 +759,7 @@ class Player {
         });
         sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
             info.setLife(Math.min(info.life() + 1, Player.maxLifes));
+            this.showLifeLights();
             lifePowerUp.caught();
         });
 
@@ -786,6 +788,12 @@ class Player {
                     break;
             }            
         });
+    }
+
+    private showLifeLights() {
+        for (let i = 0; i < 5; i++) {
+            light.setPixelColor(i, light.colors(i + 1 <= info.life() ? Colors.Green : Colors.Red));
+        }
     }
 
     private drawBombs() {
@@ -817,7 +825,12 @@ class Player {
             this.weaponLevel -= 1;
             music.playSound("G5:1 C5:1");
         } else {
-            info.changeLifeBy(-1)
+            if (info.life() === 1) {
+                // will be game over
+                light.showAnimation(light.runningLightsAnimation, 500);
+            }
+            info.changeLifeBy(-1);
+            this.showLifeLights();
             music.playSound("G5:1 E5:1 C5:2");
         }
         player.startEffect(effects.spray, 200)
@@ -1066,6 +1079,7 @@ class StoryBook {
                 event.createEnemy();
                 if (this.storyBook.length == 0) {
                     setTimeout(function () {
+                        light.showAnimation(light.runningLightsAnimation, 3000);
                         game.over(true);
                     }, 10000);
                 }
@@ -1080,6 +1094,8 @@ class StoryBook {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+light.setBrightness(8);
+light.setLength(5);
 scene.setBackgroundColor(9);
 const player = new Player();
 

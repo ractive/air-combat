@@ -1,7 +1,8 @@
 {
     "name": "Air Combat",
     "dependencies": {
-        "device": "*"
+        "device": "*",
+        "light": "*"
     },
     "description": "",
     "files": [
