@@ -9,7 +9,11 @@
     "files": [
         "main.blocks",
         "main.ts",
-        "README.md"
+        "README.md",
+        "player.ts",
+        "powerup.ts",
+        "storybook.ts",
+        "README.ts"
     ],
     "testFiles": [
         "test.ts"
