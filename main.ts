@@ -693,4 +693,3 @@ const lifePowerUp = new PowereUp(img`
 
 const storyBook = new StoryBook();
 storyBook.play();
-
