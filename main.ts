@@ -246,13 +246,7 @@ class GrayPlane extends Plane implements Enemy {
         let vy =  50 * Math.sign(this.sprite.vy);
         let ax = 200 * Math.sign(this.sprite.vx);
         let ay = 200 * Math.sign(this.sprite.vy);
-        if (this.sprite.vx !== 0) {
-            vy = 0;
-            ay = 0;
-        } else if (this.sprite.vy !== 0) {
-            vx = 0;
-            ax = 0;
-        }
+
         const projectile = sprites.createProjectileFromSprite(
             rotate(GrayPlane.projectileImage, this.movement.direction),
             this.sprite,
@@ -760,7 +754,7 @@ class Player {
         });
 
         sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
-            this.weaponLevel = Math.min(this.weaponLevel + 1, 3);
+            this.weaponLevel = Math.min(this.weaponLevel + 1, 4);
             powerUp.caught();
         });
 
@@ -819,16 +813,22 @@ class Player {
     }
 
     public shoot() {
-        if (this.weaponLevel >= 1) {
-            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100)
+        if (this.weaponLevel === 1) {
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100);
+        } else if (this.weaponLevel >= 2) {
+            const p1 = sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100);
+            const p2 = sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100);
+            p1.setPosition(p1.x - 1, p1.y);
+            p2.setPosition(p2.x + 1, p2.y);
         }
-        if (this.weaponLevel >= 2) {
-            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -50, -87)
+
+        if (this.weaponLevel >= 3) {
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -50, -87);
             sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 50, -87)
         }
-        if (this.weaponLevel >= 3) {
-            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -87, -50)
-            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 87, -50)
+        if (this.weaponLevel >= 4) {
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -87, -50);
+            sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 87, -50);
         }
     }
 
