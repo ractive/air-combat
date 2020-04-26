@@ -121,8 +121,8 @@ abstract class BaseEnemy  {
         return this.movement;
     }
     
-    public gotHitBy(projectile: Sprite): void {
-        if (projectile.kind() === SpriteKind.BombPowerup) {
+    public gotHitBy(projectile?: Sprite): void {
+        if (projectile && projectile.kind() === SpriteKind.BombPowerup) {
             this.remainingHits = Math.max(this.remainingHits - 11, 0);
         } else {
             this.remainingHits -= 1;
@@ -136,7 +136,7 @@ abstract class BaseEnemy  {
             this.sprite.startEffect(effects.fire);
         }
 
-        if (projectile.kind() === SpriteKind.Projectile) {
+        if (projectile && projectile.kind() === SpriteKind.Projectile) {
             projectile.destroy();
         }
     }
@@ -750,7 +750,7 @@ class Player {
         });
 
         sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, playerSprite) {
-            this.gotHit(playerSprite, enemyProjectile)
+            this.gotHit(enemyProjectile)
         });
 
         sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
@@ -775,9 +775,9 @@ class Player {
                 // no collision with a ship
                 return;
             }
-            this.gotHit(playerSprite, undefined);
+            this.gotHit();
             scene.cameraShake(3, 500);
-            enemy.gotHitBy(playerSprite);
+            enemy.gotHitBy();
             const pushedBy: number = 30;
             switch (enemy.getMovement().direction) {
                 case Direction.DOWN:
@@ -832,7 +832,7 @@ class Player {
         }
     }
 
-    public gotHit(player: Sprite, otherSprite?: Sprite) {
+    public gotHit(otherSprite?: Sprite) {
         if (this.weaponLevel > 1) {
             this.weaponLevel -= 1;
             music.playSound("G5:1 C5:1");
@@ -845,7 +845,7 @@ class Player {
             this.showLifeLights();
             music.playSound("G5:1 E5:1 C5:2");
         }
-        player.startEffect(effects.spray, 200)
+        this.sprite.startEffect(effects.spray, 200)
         if (otherSprite) {
             otherSprite.destroy(effects.fire, 100)
         }
