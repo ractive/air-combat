@@ -12,8 +12,7 @@
         "README.md",
         "player.ts",
         "powerup.ts",
-        "storybook.ts",
-        "README.ts"
+        "storybook.ts"
     ],
     "testFiles": [
         "test.ts"
