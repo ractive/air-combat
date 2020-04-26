@@ -209,9 +209,12 @@ class RedPlane extends Plane implements Enemy {
 
 class GrayPlane extends Plane implements Enemy {
     private static readonly projectileImage: Image = img`
-        d f d
-        f 2 f
-        d f d
+        . c .
+        c f c
+        . f .
+        . f .
+        b f b
+        b 2 b
     `;
     
     private static readonly image: Image = img`
@@ -250,7 +253,12 @@ class GrayPlane extends Plane implements Enemy {
             vx = 0;
             ax = 0;
         }
-        const projectile = sprites.createProjectileFromSprite(GrayPlane.projectileImage, this.sprite, vx, vy)
+        const projectile = sprites.createProjectileFromSprite(
+            rotate(GrayPlane.projectileImage, this.movement.direction),
+            this.sprite,
+            vx,
+            vy
+        );
         projectile.ax = ax;
         projectile.ay = ay;
         projectile.setKind(SpriteKind.EnemyProjectile)
