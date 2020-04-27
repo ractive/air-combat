@@ -133,11 +133,15 @@ class StoryBook {
             this.add(6, { t: t.plus(15), v: 15, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, element: Enemies.greenPlane });
             this.add(5, { t: t.plus(10), v: 30, delay: 0, pos: 25, offset: 27, direction: Direction.DOWN, element: Enemies.redPlane });
             this.add(6, { t: t.plus(10), v: 80, delay: 0, pos: 10, offset: 27, direction: Direction.DOWN, element: Enemies.grayPlane });
-
             this.add(2, { t: t.plus(20), v: 8, pos: halfWidth - 15, offset: 25, delay: 5, element: Elements.cloud2 });
             this.add(1, { t: t.plus(15), v: 15, pos: halfWidth, direction: Direction.DOWN, element: Enemies.bomberPlane });
 
-            this.add(3, { t: t.plus(100), v: 20, pos: 30, offset: 45, delay: 20, element: Elements.cloud1 });
+            this.add(2, { t: t.plus(0), v: 15, pos: 15, offset: 30, delay: 0, direction: Direction.DOWN, element: Enemies.frigate });
+            this.add(1, { t: t.plus(15), v: 15, pos: 30, direction: Direction.DOWN, element: Enemies.battleShip });
+            this.add(2, { t: t.plus(30), v: 15, pos: 100, offset: 30, delay: 0, direction: Direction.DOWN, element: Enemies.frigate });
+            this.add(1, { t: t.plus(15), v: 15, pos: 115, direction: Direction.DOWN, element: Enemies.battleShip });
+
+            this.add(3, { t: t.plus(50), v: 20, pos: 30, offset: 45, delay: 20, element: Elements.cloud1 });
             this.add(1, { t: t.plus(30), v: 20, pos: halfWidth, direction: Direction.UP, element: Enemies.bomberPlane });
 
             this.add(2, { t: t.plus(15), v: 20, pos: 95, offset: 45, delay: 10, element: Elements.cloud1 });

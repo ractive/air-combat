@@ -566,7 +566,7 @@ class BattleShip extends Ship implements Enemy {
         super(BattleShip.image, mov, 40);
         this.interval = setInterval(() => {
             this.shoot();
-        }, 5000);
+        }, 2000);
     }
 
     private shoot(): void {

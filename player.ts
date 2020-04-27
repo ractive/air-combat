@@ -4,9 +4,10 @@ function isShip(toBeDetermined: Enemy): toBeDetermined is Ship {
 
 class Player {
     private static readonly maxLifes = 5;
-    private hits = 0
+    private hits = 0;
     private bombs = 0;
-    private weaponLevel = 1
+    private weaponLevel = 1;
+    private lastHit = 0;
     private readonly sprite: Sprite;
     private readonly bombSprites: Sprite[];
     private static readonly bombImage: Image = img`
@@ -214,21 +215,33 @@ class Player {
     }
 
     public gotHit(otherSprite?: Sprite) {
-        if (this.weaponLevel > 1) {
-            this.weaponLevel -= 1;
-            music.playSound("G5:1 C5:1");
-        } else {
-            if (info.life() === 1) {
-                // will be game over
-                light.showAnimation(light.runningLightsAnimation, 500);
+        // Add some grace time when got hit
+        if (game.runtime() - this.lastHit > 1000) {
+            if (this.weaponLevel > 1) {
+                this.weaponLevel -= 1;
+                music.playSound("G5:1 C5:1");
+            } else {
+                if (info.life() === 1) {
+                    // will be game over
+                    light.showAnimation(light.runningLightsAnimation, 500);
+                }
+                info.changeLifeBy(-1);
+                this.showLifeLights();
+                music.playSound("G5:1 E5:1 C5:2");
             }
-            info.changeLifeBy(-1);
-            this.showLifeLights();
-            music.playSound("G5:1 E5:1 C5:2");
+
+            this.sprite.startEffect(effects.spray, 200);
+            if (otherSprite) {
+                otherSprite.destroy(effects.fire, 100);
+            }
+        } else {
+            if (otherSprite) {
+                otherSprite.destroy();
+            }
         }
-        this.sprite.startEffect(effects.spray, 200)
-        if (otherSprite) {
-            otherSprite.destroy(effects.fire, 100)
-        }
+
+
+
+        this.lastHit = game.runtime();
     }
 }
