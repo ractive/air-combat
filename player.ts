@@ -1,7 +1,3 @@
-function isShip(toBeDetermined: Enemy): toBeDetermined is Ship {
-    return toBeDetermined instanceof Ship;
-}
-
 class Player {
     private static readonly maxLifes = 5;
     private hits = 0;
@@ -153,8 +149,9 @@ class Player {
 
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
             const enemy = Enemies.fromSprite(enemySprite);
-            if (isShip(enemy)) {
-                // no collision with a ship
+            if (enemySprite.z < 10) {
+                console.log("low!!!!");
+                // no collision with low objects like vehicles or ships
                 return;
             }
             this.gotHit();
@@ -163,16 +160,32 @@ class Player {
             const pushedBy: number = 30;
             switch (enemy.getMovement().direction) {
                 case Direction.DOWN:
-                    playerSprite.y += pushedBy;
+                    if (enemySprite.y > playerSprite.y) {
+                        playerSprite.y -= pushedBy / 2;
+                    } else {
+                        playerSprite.y += pushedBy;
+                    }
                     break;
                 case Direction.UP:
-                    playerSprite.y -= pushedBy;
+                    if (enemySprite.y < playerSprite.y) {
+                        playerSprite.y += pushedBy / 2;
+                    } else {
+                        playerSprite.y -= pushedBy;
+                    }
                     break;
                 case Direction.LEFT:
-                    playerSprite.x -= pushedBy;
+                    if (enemySprite.x < playerSprite.x) {
+                        playerSprite.x += pushedBy / 2;
+                    } else {
+                        playerSprite.x -= pushedBy;
+                    }
                     break;
                 case Direction.RIGHT:
-                    playerSprite.x += pushedBy;
+                    if (enemySprite.y > playerSprite.x) {
+                        playerSprite.x -= pushedBy / 2;
+                    } else {
+                        playerSprite.x += pushedBy;
+                    }
                     break;
             }
         });

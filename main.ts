@@ -6,6 +6,7 @@ namespace SpriteKind {
 }
 
 enum Direction { UP, LEFT, DOWN, RIGHT };
+const cloudZ = 30;
 
 function rotate(img: Image, direction: Direction): Image {
     function rotateImage(img: Image, deg: number): Image {
@@ -152,6 +153,13 @@ abstract class BaseEnemy extends BaseObject {
     }
 }
 
+abstract class Vehicle extends BaseEnemy {
+    constructor(image: Image, mov: Movement, hits: number = 10) {
+        super(image, mov, hits);
+        this.sprite.z = 1;
+    }
+}
+
 abstract class Ship extends BaseEnemy {
     constructor(image: Image, mov: Movement, hits: number = 6) {
         super(image, mov, hits);
@@ -162,7 +170,60 @@ abstract class Ship extends BaseEnemy {
 abstract class Plane extends BaseEnemy {
     constructor(image: Image, mov: Movement, hits: number = 1) {
         super(image, mov, hits);
-        this.sprite.z = 15; // above the clouds
+        this.sprite.z = cloudZ + 10; // above the clouds
+    }
+}
+
+class Tank extends Vehicle implements Enemy {
+    private static readonly projectileImage: Image = img`
+        4 f 4
+        f 5 f
+        4 f 4
+    `;
+    private static readonly image: Image = img`
+          . . c 4 c 4 c . .
+          f f 6 6 6 6 6 f f
+          e e 6 b 7 b 6 e e
+          f f b 7 7 7 b f f
+          e e 7 7 c 7 7 e e
+          f f b 7 7 7 b f f
+          e e 6 b 7 b 6 e e
+          f f 6 6 7 6 6 f f
+          e e 6 6 7 6 6 e e
+          . . c 6 7 6 c . .
+          . . . . f . . . .
+      `;
+    private interval: number;
+
+    constructor(mov: Movement) {
+        super(Tank.image, mov);
+        this.sprite.z = 2; // above the island
+        this.interval = setInterval(() => {
+            this.shoot();
+        }, 4000);
+    }
+
+    private shoot(): void {
+        function toRadian(degrees: number) {
+            return degrees * (Math.PI/180);
+        }
+
+        const dx: number = player.getSprite().x - this.sprite.x;
+        const dy: number = player.getSprite().y - this.sprite.y;
+        const a = Math.atan(dy/dx);
+
+        const v = 30;
+        for (let angle of [a - toRadian(15), a, a + toRadian(15)]) {
+            const vx = v * Math.cos(angle) * Math.sign(dx);
+            const vy = v * Math.sin(angle) * Math.sign(dx);
+            const projectile = sprites.createProjectileFromSprite(Tank.projectileImage, this.sprite, vx, vy);
+            projectile.setKind(SpriteKind.EnemyProjectile);
+        }
+
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
     }
 }
 
@@ -184,7 +245,7 @@ class GreenPlane extends Plane implements Enemy {
 
     constructor(mov: Movement) {
         super(GreenPlane.image, mov);
-        this.sprite.z = 8; // below the clouds
+        this.sprite.z = cloudZ - 10; // below the clouds
     }
 }
 
@@ -308,7 +369,7 @@ class BigPlane extends Plane implements Enemy {
 
     constructor(mov: Movement) {
         super(BigPlane.image, mov, 3);
-        this.sprite.z = 8; // below the clouds
+        this.sprite.z = cloudZ - 15; // below the clouds
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -372,7 +433,7 @@ class BomberPlane extends Plane implements Enemy {
 
     constructor(mov: Movement) {
         super(BomberPlane.image, mov, 20);
-        this.sprite.z = 8; // below the clouds
+        this.sprite.z = cloudZ - 20; // below the clouds
         this.shoot();
         this.interval = setInterval(() => {
             this.shoot();
@@ -644,7 +705,91 @@ class Cloud extends BaseObject implements Element {
     constructor(mov: Movement, cloud: number) {
         super(cloud === 1 ? Cloud.cloud1 : Cloud.cloud2, mov);
         this.sprite.setFlag(SpriteFlag.Ghost, true);
-        this.sprite.z = 10;
+        this.sprite.z = cloudZ;
+    }
+}
+
+class Island extends BaseObject implements Element {
+    private static readonly island: Image = img`
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . d d d d d d d d d d d d . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d . . . . . . . . . . . . . . . . . . . . . .
+        . . . . d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d . . . . . . . . . . . . . . . . . . .
+        . . . d d d d d d d 7 7 7 7 7 7 7 7 7 d d d d d d d d d d d d d d d d d d d d d d d d d d d d . . . . . . . . . . . . . . . . .
+        . . . d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d d d d d d d d d . . . . . . . . . . . . . . .
+        . . d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d d d d d d d . . . . . . . . . . . . . .
+        . . d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d d d d . . . . . . . . . . . . .
+        . d d d d d 7 7 7 7 7 7 7 e 7 6 7 7 7 6 7 5 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d . . . . . . . . . . . . .
+        . d d d d 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . . . . . . . . . .
+        . d d d d d 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 8 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d . . . . . . . . . .
+        . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 2 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d . . . . . . . . .
+        . d d d d 7 7 7 7 7 6 7 7 7 e 7 7 7 6 7 e 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 e 7 7 7 7 7 7 d d d d d . . . . . . . .
+        . d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 8 7 7 7 6 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 d d d d . . . . . . . .
+        . . d d d d 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 d d d d . . . . . . .
+        . . d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 2 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 6 7 7 7 7 7 7 7 7 7 d d d . . . . . . .
+        . . d d d d d 7 7 6 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 7 7 8 7 7 7 8 7 7 7 7 7 d d d . . . . . .
+        . . d d d d d 7 7 7 7 7 6 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d . . . . .
+        . . . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 5 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . . .
+        . . . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 8 7 7 d d d d d d . . .
+        . . . . d d d d 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 2 7 7 e 7 7 7 d d d d d d . . .
+        . . . . . d d d 7 7 7 7 7 7 7 7 2 7 7 e 7 7 7 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d . . .
+        . . . . . d d d 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 2 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d . . .
+        . . . . . d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 6 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 d d d d d d . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 7 7 8 7 7 7 e 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 5 7 d d d d d d . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 2 7 7 7 e 7 7 7 7 7 7 7 6 7 7 7 7 d d d d d d . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . .
+        . . . . . d d d d 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 e 7 7 7 d d d d d . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d . . . .
+        . . . . . d d d d 7 7 7 6 7 7 7 7 7 7 7 7 e 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 d d d d . . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 8 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 d d d d . . . .
+        . . . . . d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 d d d d d . . . .
+        . . . . . . d d d 7 7 7 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 d d d d d . . . .
+        . . . . . . d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 2 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . . .
+        . . . . . . d d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 6 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 d d d d . . . . .
+        . . . . . . . d d d d d d d 7 7 7 7 7 7 7 6 6 7 7 7 7 7 7 7 7 7 7 8 7 7 7 7 7 7 7 7 7 7 7 7 7 7 8 7 7 7 7 7 7 d d d d . . . . .
+        . . . . . . . d d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 d d d d d . . . . .
+        . . . . . . . . . d d d d d d d d d 7 7 7 7 7 7 7 7 7 7 7 6 7 7 7 7 7 7 e 7 7 7 6 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . . . .
+        . . . . . . . . . . . d d d d d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d . . . . .
+        . . . . . . . . . . . . . d d d d d d d d d d 7 7 7 7 7 7 7 7 e 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d 7 7 d d d d d d . . . . .
+        . . . . . . . . . . . . . . . . . . d d d d d d d d 7 7 7 7 7 7 7 7 7 7 7 7 7 7 d d d d d d d d d d d d d d d d d d . . . . . .
+        . . . . . . . . . . . . . . . . . . . d d d d d d d d d d 7 7 7 7 7 7 7 d d d d d d d d d d d d d d d d d d d d d d . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d d . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . d d d d d d d d d d d d d d d d d . . . . . . . d d d d d d d d d d d . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . d d d d d d d d d d d . . . . . . . . . . . . . d d d d d d d d . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . d d d d d d . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . d d . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    `;
+
+    private static islandImg(island: number) {
+        switch (island) {
+            case 1: return Island.island;
+            case 2: return rotate(Island.island, Direction.LEFT);
+            case 3: return rotate(Island.island, Direction.RIGHT);
+            case 4: return rotate(Island.island, Direction.UP);
+            default: return Island.island;
+        }
+    }
+
+    constructor(mov: Movement, island: number) {
+        super(Island.islandImg(island), mov);
+        this.sprite.setFlag(SpriteFlag.Ghost, true);
     }
 }
 
