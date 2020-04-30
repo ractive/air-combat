@@ -150,7 +150,6 @@ class Player {
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
             const enemy = Enemies.fromSprite(enemySprite);
             if (enemySprite.z < 10) {
-                console.log("low!!!!");
                 // no collision with low objects like vehicles or ships
                 return;
             }
@@ -229,7 +228,7 @@ class Player {
 
     public gotHit(otherSprite?: Sprite) {
         // Add some grace time when got hit
-        if (game.runtime() - this.lastHit > 1000) {
+        if (game.runtime() - this.lastHit > 500) {
             if (this.weaponLevel > 1) {
                 this.weaponLevel -= 1;
                 music.playSound("G5:1 C5:1");
