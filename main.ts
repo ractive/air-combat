@@ -5,39 +5,60 @@ namespace SpriteKind {
     export const EnemyProjectile = SpriteKind.create()
 }
 
+function angleBetween(sprite1: Sprite, sprite2: Sprite): number {
+    const dx: number = sprite2.x - sprite1.x;
+    const dy: number = sprite2.y - sprite1.y;
+    const a = Math.atan2(dx, dy);
+    return a;
+}
+
+function vComponents(v: number, angle: number): {vx: number, vy: number} {
+    const vy = v * Math.cos(angle);
+    const vx = v * Math.sin(angle);
+    return {vx, vy};
+}
+
+function toRadian(degrees: number) {
+    return degrees * (Math.PI/180);
+}
+
+function toDegrees(rad: number) {
+    return rad * (180/Math.PI);
+}
+
 enum Direction { UP, LEFT, DOWN, RIGHT };
 const cloudZ = 30;
 
-function rotate(img: Image, direction: Direction): Image {
-    function rotateImage(img: Image, deg: number): Image {
-        function transpose(img: Image): Image {
-            const result = image.create(img.height, img.width);
-            for (let x = 0; x < img.width; x++) {
-                for (let y = 0; y < img.height; y++) {
-                    result.setPixel(y, x, img.getPixel(x, y));
-                }
+function rotateImage(img: Image, deg: number): Image {
+    function transpose(img: Image): Image {
+        const result = image.create(img.height, img.width);
+        for (let x = 0; x < img.width; x++) {
+            for (let y = 0; y < img.height; y++) {
+                result.setPixel(y, x, img.getPixel(x, y));
             }
-            return result;
         }
-
-        if (deg == -90 || deg == 270) {
-            const r = transpose(img);
-            r.flipY();
-            return r;
-        } else if (deg == 180 || deg == -180) {
-            const r = img.clone();
-            r.flipX();
-            r.flipY();
-            return r;
-        } else if (deg == 90) {
-            const r = transpose(img);
-            r.flipX();
-            return r;
-        } else {
-            return img;
-        }
+        return result;
     }
 
+    if (deg == -90 || deg == 270) {
+        const r = transpose(img);
+        r.flipY();
+        return r;
+    } else if (deg == 180 || deg == -180) {
+        const r = img.clone();
+        r.flipX();
+        r.flipY();
+        return r;
+    } else if (deg == 90) {
+        const r = transpose(img);
+        r.flipX();
+        return r;
+    } else {
+        return img;
+    }
+}
+
+function rotate(img: Image, direction: Direction): Image {
     switch (direction) {
         case Direction.DOWN: return img;
         case Direction.UP: return rotateImage(img, 180);
@@ -160,6 +181,13 @@ abstract class Vehicle extends BaseEnemy {
     }
 }
 
+abstract class Building extends BaseEnemy {
+    constructor(image: Image, mov: Movement, hits: number = 20) {
+        super(image, mov, hits);
+        this.sprite.z = 1;
+    }
+}
+
 abstract class Ship extends BaseEnemy {
     constructor(image: Image, mov: Movement, hits: number = 6) {
         super(image, mov, hits);
@@ -197,33 +225,160 @@ class Tank extends Vehicle implements Enemy {
 
     constructor(mov: Movement) {
         super(Tank.image, mov);
-        this.sprite.z = 2; // above the island
         this.interval = setInterval(() => {
             this.shoot();
         }, 4000);
     }
 
     private shoot(): void {
-        function toRadian(degrees: number) {
-            return degrees * (Math.PI/180);
-        }
-
-        const dx: number = player.getSprite().x - this.sprite.x;
-        const dy: number = player.getSprite().y - this.sprite.y;
-        const a = Math.atan(dy/dx);
-
-        const v = 30;
+        const a = angleBetween(this.sprite, player.getSprite());
         for (let angle of [a - toRadian(15), a, a + toRadian(15)]) {
-            const vx = v * Math.cos(angle) * Math.sign(dx);
-            const vy = v * Math.sin(angle) * Math.sign(dx);
-            const projectile = sprites.createProjectileFromSprite(Tank.projectileImage, this.sprite, vx, vy);
+            const v = vComponents(30, angle);
+            const projectile = sprites.createProjectileFromSprite(Tank.projectileImage, this.sprite, v.vx, v.vy);
             projectile.setKind(SpriteKind.EnemyProjectile);
         }
-
     }
 
     public destroy() {
         clearInterval(this.interval);
+    }
+}
+
+class AntiAircraftTower extends Building implements Enemy {
+    private static readonly projectileImage: Image = img`
+        . 1 . 1 .
+        . . 1 . .
+        d 2 d 2 d
+        . d d d .
+        . d d d .
+        . d d d .
+        . d d d .
+        . d d d .
+        . d d d .
+        . d d d .
+        . . d . .
+        . . d . .
+    `;
+    private static readonly projectileImage45: Image = img`
+        . . . . . . . 1 .
+        . . . . . d 2 . 1
+        . . . . . d . 2 .
+        . . . . d d d d .
+        . . . d d d . . .
+        . . d d d . . . .
+        . d d d . . . . .
+        . d d . . . . . .
+        d . . . . . . . .
+    `;
+    private static readonly image: Image = img`
+        . . . e e e e e e e e f . . .
+        . . e b b b b b b b b b f . .
+        . e b b c c c c c c c b b f .
+        e b b c c c c c c c c a b b e
+        e b c c c c c c c c c c a b f
+        e b c c c c c c c c c c a b e
+        e b c c c c c c c c c c a b f
+        e b c c c c c c c c c c a b e
+        e b c c c c c c c c c c a b f
+        e b c c c c c c c c c c a b e
+        e b c c c c c c c c c c a b f
+        e b b c c c c c c c c a b b e
+        . e b b c c c c c c c b b f .
+        . . e b b b b b b b b b f . .
+        . . . e e e e e e e e f . . .
+    `;
+    private interval: number;
+    private interval2: number;
+    private timeout1: number = 0;
+    private timeout2: number = 0;
+    private timeout3: number = 0;
+
+    constructor(mov: Movement) {
+        super(AntiAircraftTower.image, mov);
+        const i = AntiAircraftTower.image.clone();
+        i.drawTransparentImage(AntiAircraftTower.projectileImage, 5, 5);
+        this.sprite.setImage(i);
+        this.interval = setInterval(() => this.shoot(), Math.randomRange(1700, 2100));
+        this.interval2 = setInterval(() => {
+            const r = this.calc(this.sprite, player.getSprite(), 10);
+            const i = AntiAircraftTower.image.clone();
+            const projectileImage = this.projectileImage(r.degrees);
+            const offsetX = (AntiAircraftTower.image.width - projectileImage.width) / 2;
+            const offsetY = (AntiAircraftTower.image.height - projectileImage.height) / 2;
+            i.drawTransparentImage(projectileImage, offsetX, offsetY);
+            this.sprite.setImage(i);
+        }, 100);
+    }
+
+    private projectileImage(angleDegrees: number): Image {
+        switch(angleDegrees) {
+            case 180:
+            case -180:
+                return rotateImage(AntiAircraftTower.projectileImage, 180);
+            case 135:
+                return rotateImage(AntiAircraftTower.projectileImage45, 180);
+            case 90:
+                return rotateImage(AntiAircraftTower.projectileImage, -90);
+            case 45:
+                return rotateImage(AntiAircraftTower.projectileImage45, -90);
+            case 0:
+                return AntiAircraftTower.projectileImage;
+            case -45:
+                return AntiAircraftTower.projectileImage45;
+            case -90:
+                return rotateImage(AntiAircraftTower.projectileImage, 90);
+            case -135:
+                return rotateImage(AntiAircraftTower.projectileImage45, 90);
+            default:
+                return AntiAircraftTower.projectileImage
+        }
+    }
+
+    private calc(sprite1: Sprite, sprite2: Sprite, v: number): {degrees: number, vx: number, vy :number} {
+        let a = angleBetween(sprite1, sprite2);
+        // Align to 45° angles
+        const degrees = Math.round(toDegrees(a) / 45) * 45;
+        a = toRadian(degrees);
+        console.log("a=" + a);
+        const vc = vComponents(v, a);
+        return {degrees, vx: vc.vx, vy: vc.vy};
+    }
+
+    public shoot(): void {
+        const r = this.calc(this.sprite, player.getSprite(), 20);
+
+        const projectile = sprites.createProjectileFromSprite(this.projectileImage(r.degrees), this.sprite, r.vx, r.vy);
+        projectile.setKind(SpriteKind.EnemyProjectile);
+
+        this.timeout1 = setTimeout(() => {
+            const r = this.calc(projectile, player.getSprite(), 30);
+            projectile.setImage(this.projectileImage(r.degrees));
+            projectile.setVelocity(r.vx, r.vy);
+        }, 1000);
+        this.timeout2 = setTimeout(() => {
+            const r = this.calc(projectile, player.getSprite(), 40);
+            projectile.setImage(this.projectileImage(r.degrees));
+            projectile.setVelocity(r.vx, r.vy);
+        }, 2000);   
+        this.timeout3 = setTimeout(() => {
+            const r = this.calc(projectile, player.getSprite(), 50);
+            projectile.setImage(this.projectileImage(r.degrees));
+            projectile.setVelocity(r.vx, r.vy);
+        }, 3000);
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+        clearInterval(this.interval2);
+        if (this.timeout1) {
+            clearTimeout(this.timeout1);
+        }
+        if (this.timeout2) {
+            clearTimeout(this.timeout2);
+        }
+        if (this.timeout3) {
+            clearTimeout(this.timeout3);
+        }
     }
 }
 
@@ -631,14 +786,9 @@ class BattleShip extends Ship implements Enemy {
     }
 
     private shoot(): void {
-        const dx: number = player.getSprite().x - this.sprite.x;
-        const dy: number = player.getSprite().y - this.sprite.y;
-        const a = Math.atan(dy / dx);
-
-        const v = 100;
-        const vx = v * Math.cos(a) * Math.sign(dx);
-        const vy = v * Math.sin(a) * Math.sign(dx);
-        const projectile = sprites.createProjectileFromSprite(BattleShip.projectileImage, this.sprite, vx, vy)
+        const a = angleBetween(this.sprite, player.getSprite());
+        const v = vComponents(100, a);
+        const projectile = sprites.createProjectileFromSprite(BattleShip.projectileImage, this.sprite, v.vx, v.vy)
         projectile.setKind(SpriteKind.EnemyProjectile)
     }
 
