@@ -201,19 +201,19 @@ class StoryBook {
             if (!props.direction && props.direction !== 0) {
                 props.direction = Direction.DOWN;
             }
+            const pos = props.pos + i * props.offset;
+            const t = props.t + i * props.delay;
             this.storyBook.push(
-                this.createEvent(props.t + i * props.delay, props.direction, props.pos + i * props.offset, props.v, props.element)
+                {
+                    t,
+                    createElement: () => props.element({
+                        direction: props.direction,
+                        pos,
+                        v: props.v
+                    })
+                }
             );
         }
-    }
-
-    private createEvent(t: number, direction: Direction, pos: number, v: number, element: (mov: Movement) => void): Event {
-        return {
-            t,
-            createElement: () => element({
-                direction, pos, v
-            })
-        };
     }
 
     public play() {
@@ -231,6 +231,6 @@ class StoryBook {
                     }, 10000);
                 }
             }
-        })
+        });
     }
 } 
