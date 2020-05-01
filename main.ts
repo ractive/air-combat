@@ -140,8 +140,12 @@ interface Movement {
 abstract class BaseObject {
     protected readonly sprite: Sprite;
     protected movement: Movement;
+    private readonly interval: Interval;
+    private intervalFunctions: { (): void; } [] = [];
 
     constructor(image: Image, mov: Movement) {
+        this.interval = new Interval();
+
         if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
             this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
 
@@ -186,7 +190,12 @@ abstract class BaseObject {
     }
 
     public destroy(): void {
-        // override in derived classes
+        this.intervalFunctions.forEach((f) => f());
+    }
+
+    public onUpdateInterval(interval: number, f: () => void) {
+        const removeInterval = this.interval.on(interval, f);
+        this.intervalFunctions.push(removeInterval);
     }
 
     public getSprite(): Sprite {
@@ -277,13 +286,12 @@ class Tank extends Vehicle implements Enemy {
           . . c 6 7 6 c . .
           . . . . f . . . .
       `;
-    private interval: number;
 
     constructor(mov: Movement) {
         super(Tank.image, mov);
-        this.interval = setInterval(() => {
+        this.onUpdateInterval(4000, () => {
             this.shoot();
-        }, 4000);
+        });
     }
 
     private shoot(): void {
@@ -293,10 +301,6 @@ class Tank extends Vehicle implements Enemy {
             const projectile = sprites.createProjectileFromSprite(Tank.projectileImage, this.sprite, v.vx, v.vy);
             projectile.setKind(SpriteKind.EnemyProjectile);
         }
-    }
-
-    public destroy() {
-        clearInterval(this.interval);
     }
 }
 
@@ -412,16 +416,14 @@ class AntiAircraftTower extends Building implements Enemy {
         . . . e e e e e e e e f . . .
     `;
     private missileLoaded: boolean = true;
-    private interval: number;
-    private interval2: number;
 
     constructor(mov: Movement) {
         super(AntiAircraftTower.image, mov);
         const i = AntiAircraftTower.image.clone();
         i.drawTransparentImage(AntiAircraftMissile.image, 5, 5);
         this.sprite.setImage(i);
-        this.interval = setInterval(() => this.shoot(), Math.randomRange(2200, 2500));
-        this.interval2 = setInterval(() => {
+        this.onUpdateInterval(Math.randomRange(2200, 2500), () => this.shoot());
+        this.onUpdateInterval(500, () => {
             if (this.missileLoaded) {
                 const r = AntiAircraftMissile.calc(this.sprite, player.getSprite(), 10);
                 const i = AntiAircraftTower.image.clone();
@@ -430,7 +432,7 @@ class AntiAircraftTower extends Building implements Enemy {
                 i.drawTransparentImage(r.image, offsetX, offsetY);
                 this.sprite.setImage(i);
             }
-        }, 500);
+        });
     }
 
     public shoot(): void {
@@ -438,11 +440,6 @@ class AntiAircraftTower extends Building implements Enemy {
         this.sprite.setImage(AntiAircraftTower.image);
         this.missileLoaded = false;
         setTimeout(() => this.missileLoaded = true, 1500);
-    }
-
-    public destroy() {
-        clearInterval(this.interval);
-        clearInterval(this.interval2);
     }
 }
 
@@ -584,24 +581,18 @@ class BigPlane extends Plane implements Enemy {
         . . . . . . . . . . . . 2 . . . . . . . . . . .
     `;
 
-    private readonly interval: number;
-
     constructor(mov: Movement) {
         super(BigPlane.image, mov, 3);
         this.sprite.z = cloudZ - 15; // below the clouds
         this.shoot();
-        this.interval = setInterval(() => {
+        this.onUpdateInterval(1200, () => {
             this.shoot();
-        }, 1200);
+        });
     }
 
     private shoot(): void {
         const projectile = sprites.createProjectileFromSprite(BigPlane.projectileImage, this.sprite, 0, 70)
         projectile.setKind(SpriteKind.EnemyProjectile)
-    }
-
-    public destroy() {
-        clearInterval(this.interval);
     }
 
     public getScore(): number {
@@ -648,15 +639,13 @@ class BomberPlane extends Plane implements Enemy {
         . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     `;
 
-    private readonly interval: number;
-
     constructor(mov: Movement) {
         super(BomberPlane.image, mov, 20);
         this.sprite.z = cloudZ - 20; // below the clouds
         this.shoot();
-        this.interval = setInterval(() => {
+        this.onUpdateInterval(800, () => {
             this.shoot();
-        }, 800);
+        });
     }
 
     public shoot(): void {
@@ -670,17 +659,12 @@ class BomberPlane extends Plane implements Enemy {
         projectile.setKind(SpriteKind.EnemyProjectile);
     }
 
-    public destroy() {
-        clearInterval(this.interval);
-    }
-
     public getScore(): number {
         return 100;
     }
 }
 
 class Frigate extends Ship implements Enemy {
-    private readonly interval: number;
     private static readonly projectileImage: Image = img`
         5 4 5
         4 f 4
@@ -707,9 +691,9 @@ class Frigate extends Ship implements Enemy {
 
     constructor(mov: Movement) {
         super(Frigate.image, mov);
-        this.interval = setInterval(() => {
+        this.onUpdateInterval(3000, () => {
             this.shoot();
-        }, 3000);
+        });
     }
 
     private shoot(): void {
@@ -724,17 +708,12 @@ class Frigate extends Ship implements Enemy {
         projectile.setKind(SpriteKind.EnemyProjectile)
     }
 
-    public destroy() {
-        clearInterval(this.interval);
-    }
-
     public getScore() {
         return 20;
     }
 }
 
 class BattleShip extends Ship implements Enemy {
-    private readonly interval: number;
     private static readonly projectileImage: Image = img`
         5 4 5
         4 f 4
@@ -844,9 +823,9 @@ class BattleShip extends Ship implements Enemy {
 
     constructor(mov: Movement) {
         super(BattleShip.image, mov, 40);
-        this.interval = setInterval(() => {
+        this.onUpdateInterval(2000, () => {
             this.shoot();
-        }, 2000);
+        });
     }
 
     private shoot(): void {
@@ -854,10 +833,6 @@ class BattleShip extends Ship implements Enemy {
         const v = vComponents(100, a);
         const projectile = sprites.createProjectileFromSprite(BattleShip.projectileImage, this.sprite, v.vx, v.vy)
         projectile.setKind(SpriteKind.EnemyProjectile)
-    }
-
-    public destroy() {
-        clearInterval(this.interval);
     }
 
     public getScore() {

@@ -33,6 +33,7 @@ class StoryBook {
 
         const t = new Ticks();
         for (let i = 0; i < 1; i++) {
+            this.add(1, { t: t.plus(5), v: 35, pos: 60, direction: Direction.DOWN, element: Enemies.bigPlane });
 
             this.add(1, { t: t.plus(10), v: 30, pos: 120, element: Elements.cloud1 });
             this.add(1, { t: t.plus(0), v: 40, pos: 10, direction: Direction.LEFT, element: Enemies.greenPlane });

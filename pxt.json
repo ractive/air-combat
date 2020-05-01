@@ -4,7 +4,8 @@
     "description": "",
     "dependencies": {
         "device": "*",
-        "light": "*"
+        "light": "*",
+        "pxt-heap": "github:jwunderl/pxt-heap#v0.0.11"
     },
     "files": [
         "main.blocks",
@@ -12,7 +13,8 @@
         "README.md",
         "player.ts",
         "powerup.ts",
-        "storybook.ts"
+        "storybook.ts",
+        "interval.ts"
     ],
     "testFiles": [
         "test.ts"
