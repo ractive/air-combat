@@ -154,37 +154,21 @@ class Player {
                 return;
             }
             this.gotHit();
-            scene.cameraShake(3, 500);
+            scene.cameraShake(3, 700);
             enemy.gotHitBy();
-            const pushedBy: number = 30;
-            switch (enemy.getMovement().direction) {
-                case Direction.DOWN:
-                    if (enemySprite.y > playerSprite.y) {
-                        playerSprite.y -= pushedBy / 2;
-                    } else {
-                        playerSprite.y += pushedBy;
-                    }
+            const pushedBy: number = 20;
+            switch (Math.randomRange(0, 3)) {
+                case 0:
+                    playerSprite.x += pushedBy;
                     break;
-                case Direction.UP:
-                    if (enemySprite.y < playerSprite.y) {
-                        playerSprite.y += pushedBy / 2;
-                    } else {
-                        playerSprite.y -= pushedBy;
-                    }
+                case 1:
+                    playerSprite.x -= pushedBy;
                     break;
-                case Direction.LEFT:
-                    if (enemySprite.x < playerSprite.x) {
-                        playerSprite.x += pushedBy / 2;
-                    } else {
-                        playerSprite.x -= pushedBy;
-                    }
+                case 2:
+                    playerSprite.y += pushedBy;
                     break;
-                case Direction.RIGHT:
-                    if (enemySprite.y > playerSprite.x) {
-                        playerSprite.x -= pushedBy / 2;
-                    } else {
-                        playerSprite.x += pushedBy;
-                    }
+                default:
+                    playerSprite.y -= pushedBy;
                     break;
             }
         });

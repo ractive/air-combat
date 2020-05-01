@@ -120,7 +120,6 @@ class Enemies {
 interface Element {
     destroy(): void;
     getSprite(): Sprite;
-    getMovement(): Movement;
 }
 
 interface Enemy extends Element {
@@ -192,10 +191,6 @@ abstract class BaseObject {
 
     public getSprite(): Sprite {
         return this.sprite
-    }
-
-    public getMovement(): Movement {
-        return this.movement;
     }
 }
 
