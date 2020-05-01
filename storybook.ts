@@ -181,6 +181,7 @@ class StoryBook {
             this.add(2, { t: t.plus(50), v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, element: Enemies.grayPlane });
             this.add(1, { t: t.plus(7), v: 70, delay: 0, pos: halfWidth, offset: 0, direction: Direction.DOWN, element: Enemies.grayPlane });
             this.add(2, { t: t.plus(7), v: 70, delay: 0, pos: 50, offset: 60, direction: Direction.DOWN, element: Enemies.grayPlane });
+
         }
 
         // Sort by ticks

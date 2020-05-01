@@ -104,6 +104,7 @@ class Enemies {
     public static battleShip = (mov: Movement) => Enemies.register(new BattleShip(mov));
     public static tank = (mov: Movement) => Enemies.register(new Tank(mov));
     public static antiAircraftTower = (mov: Movement) => Enemies.register(new AntiAircraftTower(mov));
+    public static antiAircraftMissile = (x: number, y: number) => Enemies.register(new AntiAircraftMissile(x, y));
 
     public static destroyAll(sprite: Sprite): void {
         Enemies.enemies.forEach((enemy: Enemy) => {
@@ -128,9 +129,13 @@ interface Enemy extends Element {
 }
 
 interface Movement {
-    direction: Direction;
-    pos: number;
-    v: number;
+    direction?: Direction;
+    v?: number;
+    pos?: number;
+    startX?: number;
+    startY?: number;
+    vx?: number;
+    vy?: number;
 }
 
 abstract class BaseObject {
@@ -138,40 +143,47 @@ abstract class BaseObject {
     protected movement: Movement;
 
     constructor(image: Image, mov: Movement) {
-        this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
+        if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
+            this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
+
+            let x: number, y: number, vx: number, vy: number;
+            switch (mov.direction) {
+                case Direction.DOWN:
+                    x = mov.pos;
+                    y = -image.height / 2 + 2;
+                    vx = 0;
+                    vy = mov.v;
+                    break;
+                case Direction.UP:
+                    x = mov.pos;
+                    y = scene.screenHeight() + image.height / 2 - 2;
+                    vx = 0;
+                    vy = -mov.v;
+                    break;
+                case Direction.LEFT:
+                    x = scene.screenWidth() + image.width / 2 - 2;
+                    y = mov.pos;
+                    vx = -mov.v;
+                    vy = 0;
+                    break;
+                case Direction.RIGHT:
+                    x = -image.width / 2 + 2;
+                    y = mov.pos;
+                    vx = mov.v;
+                    vy = 0;
+                    break;
+            }
+
+            this.sprite.setPosition(x, y);
+            this.sprite.setVelocity(vx, vy);
+        } else if (mov.startX != undefined && mov.startY != undefined) {
+            this.sprite = sprites.create(image, SpriteKind.Enemy);
+            this.sprite.setPosition(mov.startX, mov.startY);
+            this.sprite.setVelocity(mov.vx, mov.vy);
+        }
+        
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
         this.movement = mov;
-
-        let x: number, y: number, vx: number, vy: number;
-        switch (mov.direction) {
-            case Direction.DOWN:
-                x = mov.pos;
-                y = -image.height / 2 + 2;
-                vx = 0;
-                vy = mov.v;
-                break;
-            case Direction.UP:
-                x = mov.pos;
-                y = scene.screenHeight() + image.height / 2 - 2;
-                vx = 0;
-                vy = -mov.v;
-                break;
-            case Direction.LEFT:
-                x = scene.screenWidth() + image.width / 2 - 2;
-                y = mov.pos;
-                vx = -mov.v;
-                vy = 0;
-                break;
-            case Direction.RIGHT:
-                x = -image.width / 2 + 2;
-                y = mov.pos;
-                vx = mov.v;
-                vy = 0;
-                break;
-        }
-
-        this.sprite.setPosition(x, y)
-        this.sprite.setVelocity(vx, vy)
     }
 
     public destroy(): void {
@@ -293,8 +305,8 @@ class Tank extends Vehicle implements Enemy {
     }
 }
 
-class AntiAircraftTower extends Building implements Enemy {
-    private static readonly projectileImage: Image = img`
+class AntiAircraftMissile extends Plane implements Enemy {
+    public static readonly image: Image = img`
         . 1 . 1 .
         . . 1 . .
         d 2 d 2 d
@@ -308,7 +320,7 @@ class AntiAircraftTower extends Building implements Enemy {
         . . d . .
         . . d . .
     `;
-    private static readonly projectileImage45: Image = img`
+    public static readonly image45: Image = img`
         . . . . . . . 1 .
         . . . . . d 2 . 1
         . . . . . d . 2 .
@@ -319,106 +331,61 @@ class AntiAircraftTower extends Building implements Enemy {
         . d d . . . . . .
         d . . . . . . . .
     `;
-    private static readonly image: Image = img`
-        . . . e e e e e e e e f . . .
-        . . e b b b b b b b b b f . .
-        . e b b c c c c c c c b b f .
-        e b b c c c c c c c c a b b e
-        e b c c c c c c c c c c a b f
-        e b c c c c c c c c c c a b e
-        e b c c c c c c c c c c a b f
-        e b c c c c c c c c c c a b e
-        e b c c c c c c c c c c a b f
-        e b c c c c c c c c c c a b e
-        e b c c c c c c c c c c a b f
-        e b b c c c c c c c c a b b e
-        . e b b c c c c c c c b b f .
-        . . e b b b b b b b b b f . .
-        . . . e e e e e e e e f . . .
-    `;
-    private interval: number;
-    private interval2: number;
+
     private timeout1: number = 0;
     private timeout2: number = 0;
     private timeout3: number = 0;
 
-    constructor(mov: Movement) {
-        super(AntiAircraftTower.image, mov);
-        const i = AntiAircraftTower.image.clone();
-        i.drawTransparentImage(AntiAircraftTower.projectileImage, 5, 5);
-        this.sprite.setImage(i);
-        this.interval = setInterval(() => this.shoot(), Math.randomRange(1700, 2100));
-        this.interval2 = setInterval(() => {
-            const r = this.calc(this.sprite, player.getSprite(), 10);
-            const i = AntiAircraftTower.image.clone();
-            const projectileImage = this.projectileImage(r.degrees);
-            const offsetX = (AntiAircraftTower.image.width - projectileImage.width) / 2;
-            const offsetY = (AntiAircraftTower.image.height - projectileImage.height) / 2;
-            i.drawTransparentImage(projectileImage, offsetX, offsetY);
-            this.sprite.setImage(i);
-        }, 100);
+    constructor(x: number, y: number) {
+        super(AntiAircraftMissile.image, { startX: x, startY: y, vx: 0, vy: 0});
+
+        this.recalc(20);
+
+        this.timeout1 = setTimeout(() => this.recalc(30), 1000);
+        this.timeout2 = setTimeout(() => this.recalc(40), 2000);   
+        this.timeout3 = setTimeout(() => this.recalc(50), 3000);
     }
 
-    private projectileImage(angleDegrees: number): Image {
-        switch(angleDegrees) {
-            case 180:
-            case -180:
-                return rotateImage(AntiAircraftTower.projectileImage, 180);
-            case 135:
-                return rotateImage(AntiAircraftTower.projectileImage45, 180);
-            case 90:
-                return rotateImage(AntiAircraftTower.projectileImage, -90);
-            case 45:
-                return rotateImage(AntiAircraftTower.projectileImage45, -90);
-            case 0:
-                return AntiAircraftTower.projectileImage;
-            case -45:
-                return AntiAircraftTower.projectileImage45;
-            case -90:
-                return rotateImage(AntiAircraftTower.projectileImage, 90);
-            case -135:
-                return rotateImage(AntiAircraftTower.projectileImage45, 90);
-            default:
-                return AntiAircraftTower.projectileImage
-        }
+    private recalc(v: number) {
+        const r = AntiAircraftMissile.calc(this.sprite, player.getSprite(), v);
+        this.sprite.setImage(r.image);
+        this.sprite.setVelocity(r.vx, r.vy);
     }
 
-    private calc(sprite1: Sprite, sprite2: Sprite, v: number): {degrees: number, vx: number, vy :number} {
+    public static calc(sprite1: Sprite, sprite2: Sprite, v: number): {image: Image, vx: number, vy :number} {
         let a = angleBetween(sprite1, sprite2);
         // Align to 45° angles
         const degrees = Math.round(toDegrees(a) / 45) * 45;
         a = toRadian(degrees);
-        console.log("a=" + a);
         const vc = vComponents(v, a);
-        return {degrees, vx: vc.vx, vy: vc.vy};
+        return {image: AntiAircraftMissile.projectileImage(degrees), vx: vc.vx, vy: vc.vy};
     }
 
-    public shoot(): void {
-        const r = this.calc(this.sprite, player.getSprite(), 20);
-
-        const projectile = sprites.createProjectileFromSprite(this.projectileImage(r.degrees), this.sprite, r.vx, r.vy);
-        projectile.setKind(SpriteKind.EnemyProjectile);
-
-        this.timeout1 = setTimeout(() => {
-            const r = this.calc(projectile, player.getSprite(), 30);
-            projectile.setImage(this.projectileImage(r.degrees));
-            projectile.setVelocity(r.vx, r.vy);
-        }, 1000);
-        this.timeout2 = setTimeout(() => {
-            const r = this.calc(projectile, player.getSprite(), 40);
-            projectile.setImage(this.projectileImage(r.degrees));
-            projectile.setVelocity(r.vx, r.vy);
-        }, 2000);   
-        this.timeout3 = setTimeout(() => {
-            const r = this.calc(projectile, player.getSprite(), 50);
-            projectile.setImage(this.projectileImage(r.degrees));
-            projectile.setVelocity(r.vx, r.vy);
-        }, 3000);
+    private static projectileImage(angleDegrees: number): Image {
+        switch(angleDegrees) {
+            case 180:
+            case -180:
+                return rotateImage(AntiAircraftMissile.image, 180);
+            case 135:
+                return rotateImage(AntiAircraftMissile.image45, 180);
+            case 90:
+                return rotateImage(AntiAircraftMissile.image, -90);
+            case 45:
+                return rotateImage(AntiAircraftMissile.image45, -90);
+            case 0:
+                return AntiAircraftMissile.image;
+            case -45:
+                return AntiAircraftMissile.image45;
+            case -90:
+                return rotateImage(AntiAircraftMissile.image, 90);
+            case -135:
+                return rotateImage(AntiAircraftMissile.image45, 90);
+            default:
+                return AntiAircraftMissile.image
+        }
     }
 
     public destroy() {
-        clearInterval(this.interval);
-        clearInterval(this.interval2);
         if (this.timeout1) {
             clearTimeout(this.timeout1);
         }
@@ -428,6 +395,59 @@ class AntiAircraftTower extends Building implements Enemy {
         if (this.timeout3) {
             clearTimeout(this.timeout3);
         }
+    }
+}
+
+class AntiAircraftTower extends Building implements Enemy {
+    private static readonly image: Image = img`
+        . . . e e e e e e e e f . . .
+        . . e b b b b b b b b b f . .
+        . e b b c c c c c c c b b f .
+        e b b c c c c c c c c a b b e
+        e b c c c c c c c c c c a b f
+        e b c c c c c b c c c c a b e
+        e b c c c c b c b c c c a b f
+        e b c c c b c c c b c c a b e
+        e b c c c c b c b c c c a b f
+        e b c c c c c b c c c c a b e
+        e b c c c c c c c c c c a b f
+        e b b c c c c c c c c a b b e
+        . e b b c c c c c c c b b f .
+        . . e b b b b b b b b b f . .
+        . . . e e e e e e e e f . . .
+    `;
+    private missileLoaded: boolean = true;
+    private interval: number;
+    private interval2: number;
+
+    constructor(mov: Movement) {
+        super(AntiAircraftTower.image, mov);
+        const i = AntiAircraftTower.image.clone();
+        i.drawTransparentImage(AntiAircraftMissile.image, 5, 5);
+        this.sprite.setImage(i);
+        this.interval = setInterval(() => this.shoot(), Math.randomRange(2200, 2500));
+        this.interval2 = setInterval(() => {
+            if (this.missileLoaded) {
+                const r = AntiAircraftMissile.calc(this.sprite, player.getSprite(), 10);
+                const i = AntiAircraftTower.image.clone();
+                const offsetX = (AntiAircraftTower.image.width - r.image.width) / 2;
+                const offsetY = (AntiAircraftTower.image.height - r.image.height) / 2;
+                i.drawTransparentImage(r.image, offsetX, offsetY);
+                this.sprite.setImage(i);
+            }
+        }, 500);
+    }
+
+    public shoot(): void {
+        Enemies.antiAircraftMissile(this.sprite.x + 1, this.sprite.y + 1);
+        this.sprite.setImage(AntiAircraftTower.image);
+        this.missileLoaded = false;
+        setTimeout(() => this.missileLoaded = true, 1500);
+    }
+
+    public destroy() {
+        clearInterval(this.interval);
+        clearInterval(this.interval2);
     }
 }
 
