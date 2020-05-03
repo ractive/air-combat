@@ -14,20 +14,6 @@ interface EventProps {
     element: (mov: Movement) => void;
 }
 
-class Ticks {
-    private _t: number = 0;
-
-    constructor() { }
-
-    get t(): number {
-        return this._t;
-    }
-
-    public plus(t: number): number {
-        return this._t += t;
-    }
-}
-
 interface Level {
     level: number;
     storyBook: Event[];
@@ -37,7 +23,7 @@ class LevelBuilder {
     private gameBuilder: GameBuilder;
     private level: number;
     private storyBook: Event[] = [];
-    private ticks = new Ticks();
+    private ticks: number = 0;
 
     constructor(level: number, gameBuilder: GameBuilder) {
         this.level = level;
@@ -49,7 +35,7 @@ class LevelBuilder {
     }
 
     public wait(ticks: number): LevelBuilder {
-        this.ticks.plus(ticks);
+        this.ticks += ticks;
         return this;
     }
 
@@ -70,11 +56,11 @@ class LevelBuilder {
             props.times = 1;
         }
 
-        this.ticks.plus(props.after);
+        this.ticks += props.after;
 
         for (let i = 0; i < props.times; i++) {
             const pos = props.pos + i * props.offset;
-            const t = this.ticks.t + i * props.delay;
+            const t = this.ticks + i * props.delay;
             this.storyBook.push(
                 {
                     t,
