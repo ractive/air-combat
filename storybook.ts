@@ -110,7 +110,7 @@ class GameBuilder {
 class StoryBook {
     constructor() { }
 
-    private setup(): Level[] {
+    private static setup(): Level[] {
 
         const halfWidth: number = scene.screenWidth() / 2;
         const halfHeight: number = scene.screenHeight() / 2;
@@ -268,8 +268,8 @@ class StoryBook {
             .levels;
     }
 
-    public play() {
-        const levels = this.setup();
+    public static play() {
+        const levels = StoryBook.setup();
         let currentLevel = levels.shift();
         StoryBook.levelInfo(currentLevel);
         let ticks = 0;

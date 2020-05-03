@@ -1025,5 +1025,4 @@ const lifePowerUp = new PowereUp(img`
     . . . c 2 . . .
 `, SpriteKind.LifePowerup, 10000, 40);
 
-const storyBook = new StoryBook();
-storyBook.play();
+StoryBook.play();
