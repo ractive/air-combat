@@ -132,17 +132,20 @@ class Player {
         });
 
         sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            info.changeScoreBy(30);
             this.weaponLevel = Math.min(this.weaponLevel + 1, 4);
             powerUp.caught();
         });
 
         sprites.onOverlap(SpriteKind.BombPowerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            info.changeScoreBy(50);
             this.bombs = Math.min(this.bombs + 1, 3);
             this.drawBombs();
             bombPowerUp.caught();
         });
         sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
             info.setLife(Math.min(info.life() + 1, Player.maxLifes));
+            info.changeScoreBy(100);
             this.showLifeLights();
             lifePowerUp.caught();
         });
@@ -235,8 +238,6 @@ class Player {
                 otherSprite.destroy();
             }
         }
-
-
 
         this.lastHit = game.runtime();
     }
