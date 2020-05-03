@@ -39,39 +39,41 @@ class LevelBuilder {
         return this;
     }
 
-    public with(props: EventProps): LevelBuilder {
-        if (!props.delay && props.delay !== 0) {
-            props.delay = 3;
-        }
-        if (!props.after) {
-            props.after = 0;
-        }
-        if (!props.offset && props.offset !== 0) {
-            props.offset = 10;
-        }
-        if (!props.direction && props.direction !== 0) {
-            props.direction = Direction.DOWN;
-        }
-        if (!props.times) {
-            props.times = 1;
-        }
+    public with(...propsArray: EventProps[]): LevelBuilder {
+        propsArray.forEach((props: EventProps) => {
+            if (!props.delay && props.delay !== 0) {
+                props.delay = 3;
+            }
+            if (!props.after) {
+                props.after = 0;
+            }
+            if (!props.offset && props.offset !== 0) {
+                props.offset = 10;
+            }
+            if (!props.direction && props.direction !== 0) {
+                props.direction = Direction.DOWN;
+            }
+            if (!props.times) {
+                props.times = 1;
+            }
 
-        this.ticks += props.after;
+            this.ticks += props.after;
 
-        for (let i = 0; i < props.times; i++) {
-            const pos = props.pos + i * props.offset;
-            const t = this.ticks + i * props.delay;
-            this.storyBook.push(
-                {
-                    t,
-                    createElement: () => props.element({
-                        direction: props.direction,
-                        pos,
-                        v: props.v
-                    })
-                }
-            );
-        }
+            for (let i = 0; i < props.times; i++) {
+                const pos = props.pos + i * props.offset;
+                const t = this.ticks + i * props.delay;
+                this.storyBook.push(
+                    {
+                        t,
+                        createElement: () => props.element({
+                            direction: props.direction,
+                            pos,
+                            v: props.v
+                        })
+                    }
+                );
+            }            
+        });
 
         return this;
     }
@@ -114,152 +116,154 @@ class StoryBook {
         const halfHeight: number = scene.screenHeight() / 2;
 
         return new GameBuilder()
-            .nextLevel()
-                .with({ element: Elements.cloud1, after: 10, v: 30, pos: 120  })
-                .with({ element: Enemies.greenPlane, v: 40, pos: 10, direction: Direction.LEFT })
-                .with({ element: Elements.cloud1, after: 10, v: 35, pos: 60 })
-                .with({ element: Enemies.greenPlane, after: 10, v: 40, pos: 30, direction: Direction.RIGHT })
-                .with({ element: Elements.cloud2, v: 30, pos: 60 })
-                .with({ element: Elements.cloud1, v: 35, pos: 20 })
-                .with({ element: Elements.cloud1, after: 5, v: 25, pos: 120 })
-                .with({ element: Elements.island1, after: 10, times: 2, v: 10, pos: 10, offset: -50 })
-                .with({ element: Enemies.redPlane, after: 15, v: 60, pos: 70, direction: Direction.RIGHT })
-                .with({ element: Enemies.redPlane, v: 60, pos: 90, direction: Direction.LEFT })
-                .with({ element: Elements.cloud1, after: 20, v: 35, pos: 20 })
-                .with({ element: Elements.cloud1, after: 10, v: 25, pos: 60 })
-                .with({ element: Enemies.grayPlane, after: 10, v: 80, pos: 40, direction: Direction.LEFT })
-                .with({ element: Enemies.grayPlane, after: 10, v: 80, pos: 60, direction: Direction.RIGHT })
-                .with({ element: Elements.cloud1, v: 30, pos: 120 })
-                .with({ element: Elements.cloud2, after: 15, v: 30, pos: 40 })
-                .with({ element: Enemies.bigPlane, after: 5, v: 35, pos: 60 })
+            .nextLevel().with(
+                    { element: Elements.cloud1, after: 10, v: 30, pos: 120  },
+                    { element: Elements.cloud1, after: 10, v: 35, pos: 60 },
+                    { element: Enemies.greenPlane, v: 40, pos: 10, direction: Direction.LEFT },
+                    { element: Enemies.greenPlane, after: 10, v: 40, pos: 30, direction: Direction.RIGHT },
+                    { element: Elements.cloud2, v: 30, pos: 60 },
+                    { element: Elements.cloud1, v: 35, pos: 20 },
+                    { element: Elements.cloud1, after: 5, v: 25, pos: 120 },
+                    { element: Elements.island1, after: 10, times: 2, v: 10, pos: 10, offset: -50 },
+                    { element: Enemies.redPlane, after: 15, v: 60, pos: 70, direction: Direction.RIGHT },
+                    { element: Enemies.redPlane, v: 60, pos: 90, direction: Direction.LEFT },
+                    { element: Elements.cloud1, after: 20, v: 35, pos: 20 },
+                    { element: Elements.cloud1, after: 10, v: 25, pos: 60 },
+                    { element: Enemies.grayPlane, after: 10, v: 80, pos: 40, direction: Direction.LEFT },
+                    { element: Enemies.grayPlane, after: 10, v: 80, pos: 60, direction: Direction.RIGHT },
+                    { element: Elements.cloud1, v: 30, pos: 120 },
+                    { element: Elements.cloud2, after: 15, v: 30, pos: 40 },
+                    { element: Enemies.bigPlane, after: 5, v: 35, pos: 60 },
+                )
                 .build()
 
-            .nextLevel()
-                .with({ element: Elements.cloud1, after: 20, times: 2, v: 30, pos: 130, offset: -60, delay: 10 })
-                .with({ element: Enemies.greenPlane, after: 10, times: 3, v: 50, pos: 50, direction: Direction.LEFT })
-                .with({ element: Elements.cloud1, times: 2, v: 23, pos: 100, offset: -60, delay: 10 })
-                .with({ element: Elements.cloud1, after: 30, v: 23, pos: halfWidth, offset: -60, delay: 10 })
-                .with({ element: Enemies.redPlane, times: 4, v: 80, pos: 10, offset: 10, delay: 2, direction: Direction.RIGHT })
+            .nextLevel().with(
+                    { element: Elements.cloud1, after: 20, times: 2, v: 30, pos: 130, offset: -60, delay: 10 },
+                    { element: Enemies.greenPlane, after: 10, times: 3, v: 50, pos: 50, direction: Direction.LEFT },
+                    { element: Elements.cloud1, times: 2, v: 23, pos: 100, offset: -60, delay: 10 },
+                    { element: Elements.cloud1, after: 30, v: 23, pos: halfWidth, offset: -60, delay: 10 },
+                    { element: Enemies.redPlane, times: 4, v: 80, pos: 10, offset: 10, delay: 2, direction: Direction.RIGHT },
 
-                .with({ element: Elements.cloud2, after: 15, times: 3, v: 15, pos: 30, offset: 50, delay: 10 })
-                .with({ element: Enemies.bigPlane, after: 15, times: 3, v: 30, pos: 40, offset: 20, delay: 6 })
-                .with({ element: Elements.cloud2, after: 15, times: 3, v: 15, pos: 50, offset: 45, delay: 6 })
-                .with({ element: Enemies.greenPlane, after: 10, times: 4, v: 30, pos: 120, offset: 0, delay: 4 })
+                    { element: Elements.cloud2, after: 15, times: 3, v: 15, pos: 30, offset: 50, delay: 10 },
+                    { element: Enemies.bigPlane, after: 15, times: 3, v: 30, pos: 40, offset: 20, delay: 6 },
+                    { element: Elements.cloud2, after: 15, times: 3, v: 15, pos: 50, offset: 45, delay: 6 },
+                    { element: Enemies.greenPlane, after: 10, times: 4, v: 30, pos: 120, offset: 0, delay: 4 },
 
-                .with({ element: Elements.cloud1, after: 40, times: 2, v: 10, pos: 140, offset: -70, delay: 10 })
-                .with({ element: Elements.cloud1, after: 10, times: 2, v: 12, pos: 30, offset: 90, delay: 10 })
-                .with({ element: Enemies.frigate, v: 5, pos: 65 })
-                .with({ element: Enemies.frigate, after: 10, v: 5, pos: 120 })
-                .with({ element: Elements.cloud1, after: 70, times: 2, v: 20, pos: 120, offset: 0, delay: 20 })
-                .with({ element: Elements.cloud2, v: 5, pos: 20 })
-                .with({ element: Elements.cloud2, after: 30, v: 5, pos: 30 })
-                .with({ element: Enemies.battleShip, after: 30, v: 15, pos: 30 })
+                    { element: Elements.cloud1, after: 40, times: 2, v: 10, pos: 140, offset: -70, delay: 10 },
+                    { element: Elements.cloud1, after: 10, times: 2, v: 12, pos: 30, offset: 90, delay: 10 },
+                    { element: Enemies.frigate, v: 5, pos: 65 },
+                    { element: Enemies.frigate, after: 10, v: 5, pos: 120 },
+                    { element: Elements.cloud1, after: 70, times: 2, v: 20, pos: 120, offset: 0, delay: 20 },
+                    { element: Elements.cloud2, v: 5, pos: 20 },
+                    { element: Elements.cloud2, after: 30, v: 5, pos: 30 },
+                    { element: Enemies.battleShip, after: 30, v: 15, pos: 30 },
 
-                .with({ element: Elements.island1, after: 10, times: 2, v: 10, pos: 120, offset: -20 })
-                .with({ element: Enemies.tank, after: 19, times: 2, v: 10, pos: 95, offset: 30, delay: 15 })
-                .with({ element: Elements.island4, after: 10, v: 10, pos: 20 })
-                .with({ element: Enemies.tank, after: 17, times: 2, v: 10, pos: 10, offset: 10, delay: 15 })
+                    { element: Elements.island1, after: 10, times: 2, v: 10, pos: 120, offset: -20 },
+                    { element: Enemies.tank, after: 19, times: 2, v: 10, pos: 95, offset: 30, delay: 15 },
+                    { element: Elements.island4, after: 10, v: 10, pos: 20 },
+                    { element: Enemies.tank, after: 17, times: 2, v: 10, pos: 10, offset: 10, delay: 15 },
 
-                .with({ element: Elements.cloud1, after: 15, times: 2, v: 25, pos: 95, offset: 45, delay: 10 })
-                .with({ element: Enemies.redPlane, after: 15, v: 60, pos: halfHeight, direction: Direction.LEFT })
-                .with({ element: Enemies.redPlane, v: 60, pos: halfHeight, direction: Direction.RIGHT })
-                .with({ element: Enemies.redPlane, v: 60, pos: halfWidth })
-                .with({ element: Enemies.redPlane, v: 60, pos: halfWidth, direction: Direction.UP })
+                    { element: Elements.cloud1, after: 15, times: 2, v: 25, pos: 95, offset: 45, delay: 10 },
+                    { element: Enemies.redPlane, after: 15, v: 60, pos: halfHeight, direction: Direction.LEFT },
+                    { element: Enemies.redPlane, v: 60, pos: halfHeight, direction: Direction.RIGHT },
+                    { element: Enemies.redPlane, v: 60, pos: halfWidth },
+                    { element: Enemies.redPlane, v: 60, pos: halfWidth, direction: Direction.UP },
 
-                .with({ element: Elements.island2, after: 10, v: 10, pos: halfWidth })
-                .with({ element: Elements.cloud1, times: 3, v: 27, pos: 30, offset: 45, delay: 20 })
-                .with({ element: Enemies.greenPlane, after: 25, times: 2, v: 40, pos: 70, direction: Direction.LEFT })
-                .with({ element: Enemies.greenPlane, after: 10, times: 2, v: 40, pos: 30, direction: Direction.RIGHT })
-                .with({ element: Elements.cloud1, after: 10, v: 30, pos: 30, offset: 80, delay: 40 })
-                .with({ element: Elements.island3, after: 10, v: 10, pos: 130 })
-                .with({ element: Enemies.greenPlane, after: 40, times: 2, v: 40, pos: 70, direction: Direction.LEFT })
-                .with({ element: Enemies.greenPlane, after: 10, times: 2, v: 40, pos: 30, direction: Direction.RIGHT })
-                .with({ element: Elements.cloud1, times: 4, v: 38, pos: 130, offset: -35, delay: 5 })
-                .with({ element: Elements.cloud2, after: 15, v: 27, pos: 50 })
-                .with({ element: Enemies.greenPlane, after: 15, times: 6, v: 15, delay: 0, pos: 10, offset: 27 })
-                .with({ element: Enemies.redPlane, after: 10, times: 5, v: 30, delay: 0, pos: 25, offset: 27 })
-                .with({ element: Enemies.grayPlane, after: 10, times: 6, v: 80, delay: 0, pos: 10, offset: 27 })
+                    { element: Elements.island2, after: 10, v: 10, pos: halfWidth },
+                    { element: Elements.cloud1, times: 3, v: 27, pos: 30, offset: 45, delay: 20 },
+                    { element: Enemies.greenPlane, after: 25, times: 2, v: 40, pos: 70, direction: Direction.LEFT },
+                    { element: Enemies.greenPlane, after: 10, times: 2, v: 40, pos: 30, direction: Direction.RIGHT },
+                    { element: Elements.cloud1, after: 10, v: 30, pos: 30, offset: 80, delay: 40 },
+                    { element: Elements.island3, after: 10, v: 10, pos: 130 },
+                    { element: Enemies.greenPlane, after: 40, times: 2, v: 40, pos: 70, direction: Direction.LEFT },
+                    { element: Enemies.greenPlane, after: 10, times: 2, v: 40, pos: 30, direction: Direction.RIGHT },
+                    { element: Elements.cloud1, times: 4, v: 38, pos: 130, offset: -35, delay: 5 },
+                    { element: Elements.cloud2, after: 15, v: 27, pos: 50 },
+                    { element: Enemies.greenPlane, after: 15, times: 6, v: 15, delay: 0, pos: 10, offset: 27 },
+                    { element: Enemies.redPlane, after: 10, times: 5, v: 30, delay: 0, pos: 25, offset: 27 },
+                    { element: Enemies.grayPlane, after: 10, times: 6, v: 80, delay: 0, pos: 10, offset: 27 },
 
-                .with({ element: Elements.island2, after: 40, v: 10, pos: 7 })
-                .with({ element: Elements.island4, after: 5, v: 10, pos: 140 })
-                .with({ element: Enemies.antiAircraftTower, after: 19, v: 10, pos: 15 })
-                .with({ element: Enemies.antiAircraftTower, after: 9, v: 10, pos: 150 })
+                    { element: Elements.island2, after: 40, v: 10, pos: 7 },
+                    { element: Elements.island4, after: 5, v: 10, pos: 140 },
+                    { element: Enemies.antiAircraftTower, after: 19, v: 10, pos: 15 },
+                    { element: Enemies.antiAircraftTower, after: 9, v: 10, pos: 150 },
 
-                .with({ element: Elements.cloud1, after: 15, times: 2, v: 20, pos: 30, offset: 60, delay: 10 })
-                .with({ element: Elements.cloud1, after: 40, times: 2, v: 23, pos: 100, offset: -30, delay: 20 })
+                    { element: Elements.cloud1, after: 15, times: 2, v: 20, pos: 30, offset: 60, delay: 10 },
+                    { element: Elements.cloud1, after: 40, times: 2, v: 23, pos: 100, offset: -30, delay: 20 },
 
-                .with({ element: Elements.cloud2, after: 50, times: 2, v: 8, pos: halfWidth - 15, offset: 25, delay: 5 })
-                .with({ element: Enemies.bigPlane, v: 15, pos: 30 })
-                .with({ element: Enemies.frigate, after: 15, times: 2, v: 15, pos: 15, offset: 30, delay: 0 })
-                .with({ element: Enemies.battleShip, after: 15, v: 15, pos: 30 })
+                    { element: Elements.cloud2, after: 50, times: 2, v: 8, pos: halfWidth - 15, offset: 25, delay: 5 },
+                    { element: Enemies.bigPlane, v: 15, pos: 30 },
+                    { element: Enemies.frigate, after: 15, times: 2, v: 15, pos: 15, offset: 30, delay: 0 },
+                    { element: Enemies.battleShip, after: 15, v: 15, pos: 30 },
 
-                .with({ element: Enemies.bigPlane, after: 15, v: 15, pos: 115 })
-                .with({ element: Enemies.frigate, after: 15, times: 2, v: 15, pos: 100, offset: 30, delay: 0 })
-                .with({ element: Enemies.battleShip, after: 15, v: 15, pos: 115 })
+                    { element: Enemies.bigPlane, after: 15, v: 15, pos: 115 },
+                    { element: Enemies.frigate, after: 15, times: 2, v: 15, pos: 100, offset: 30, delay: 0 },
+                    { element: Enemies.battleShip, after: 15, v: 15, pos: 115 },
 
-                .with({ element: Elements.island2, after: 10, v: 10, pos: 30 })
-                .with({ element: Enemies.antiAircraftTower, after: 27, v: 10, pos: 35 })
+                    { element: Elements.island2, after: 10, v: 10, pos: 30 },
+                    { element: Enemies.antiAircraftTower, after: 27, v: 10, pos: 35 },
 
-                .with({ element: Elements.cloud1, after: 70, times: 3, v: 20, pos: 30, offset: 45, delay: 20 })
-                .with({ element: Enemies.bomberPlane, after: 30, v: 20, pos: halfWidth, direction: Direction.UP })
+                    { element: Elements.cloud1, after: 70, times: 3, v: 20, pos: 30, offset: 45, delay: 20 },
+                    { element: Enemies.bomberPlane, after: 30, v: 20, pos: halfWidth, direction: Direction.UP },
 
-                .with({ element: Elements.cloud1, after: 15, times: 2, v: 20, pos: 95, offset: 45, delay: 10 })
-                .with({ element: Elements.cloud1, after: 20, times: 2, v: 17, pos: 40, offset: 70, delay: 5 })
-                .with({ element: Enemies.greenPlane, after: 30, v: 20, pos: halfHeight, direction: Direction.LEFT })
-                .with({ element: Enemies.greenPlane, v: 20, pos: halfHeight, direction: Direction.RIGHT })
+                    { element: Elements.cloud1, after: 15, times: 2, v: 20, pos: 95, offset: 45, delay: 10 },
+                    { element: Elements.cloud1, after: 20, times: 2, v: 17, pos: 40, offset: 70, delay: 5 },
+                    { element: Enemies.greenPlane, after: 30, v: 20, pos: halfHeight, direction: Direction.LEFT },
+                    { element: Enemies.greenPlane, v: 20, pos: halfHeight, direction: Direction.RIGHT },
 
-                .with({ element: Enemies.greenPlane, v: 20, pos: halfWidth })
-                .with({ element: Enemies.greenPlane, v: 20, pos: halfWidth, direction: Direction.UP })
+                    { element: Enemies.greenPlane, v: 20, pos: halfWidth },
+                    { element: Enemies.greenPlane, v: 20, pos: halfWidth, direction: Direction.UP },
 
-                .with({ element: Enemies.grayPlane, v: 60, pos: halfHeight, direction: Direction.LEFT })
-                .with({ element: Enemies.grayPlane, v: 60, pos: halfHeight, direction: Direction.RIGHT })
-                .with({ element: Enemies.grayPlane, v: 60, pos: halfWidth })
-                .with({ element: Enemies.grayPlane, v: 60, pos: halfWidth, direction: Direction.UP })
+                    { element: Enemies.grayPlane, v: 60, pos: halfHeight, direction: Direction.LEFT },
+                    { element: Enemies.grayPlane, v: 60, pos: halfHeight, direction: Direction.RIGHT },
+                    { element: Enemies.grayPlane, v: 60, pos: halfWidth },
+                    { element: Enemies.grayPlane, v: 60, pos: halfWidth, direction: Direction.UP },
 
-                .with({ element: Elements.cloud2, times: 3, v: 15, pos: 30, offset: 50, delay: 10 })
+                    { element: Elements.cloud2, times: 3, v: 15, pos: 30, offset: 50, delay: 10 },
 
-                .with({ element: Elements.island2, after: 10, v: 10, pos: 150, offset: 0, delay: 20 })
-                .with({ element: Enemies.tank, after: 10, times: 3, v: 10, pos: 150, offset: 0, delay: 15 })
-                .with({ element: Elements.island3, after: 10, v: 10, pos: 10, offset: 0, delay: 20 })
-                .with({ element: Enemies.tank, after: 12, times: 3, v: 10, pos: 7, offset: 0, delay: 15 })
+                    { element: Elements.island2, after: 10, v: 10, pos: 150, offset: 0, delay: 20 },
+                    { element: Enemies.tank, after: 10, times: 3, v: 10, pos: 150, offset: 0, delay: 15 },
+                    { element: Elements.island3, after: 10, v: 10, pos: 10, offset: 0, delay: 20 },
+                    { element: Enemies.tank, after: 12, times: 3, v: 10, pos: 7, offset: 0, delay: 15 },
 
-                .with({ element: Enemies.frigate, after: 30, v: 5, pos: 50, direction: Direction.UP })
-                .with({ element: Elements.cloud2, times: 2, v: 15, pos: 120, offset: -30, delay: 10 })
-                .with({ element: Enemies.frigate, after: 10, v: 5, pos: 100, direction: Direction.UP })
-                .with({ element: Elements.cloud1, after: 10, v: 15, pos: 30 })
+                    { element: Enemies.frigate, after: 30, v: 5, pos: 50, direction: Direction.UP },
+                    { element: Elements.cloud2, times: 2, v: 15, pos: 120, offset: -30, delay: 10 },
+                    { element: Enemies.frigate, after: 10, v: 5, pos: 100, direction: Direction.UP },
+                    { element: Elements.cloud1, after: 10, v: 15, pos: 30 },
 
-                .with({ element: Elements.cloud1, after: 40, times: 4, v: 15, pos: 5, offset: 4, delay: 20 })
-                .with({ element: Elements.cloud1, after: 15, times: 4, v: 15, pos: 140, offset: -7, delay: 20 })
-                .with({ element: Enemies.greenPlane, after: 25, times: 2, v: 50, pos: 40, direction: Direction.LEFT })
-                .with({ element: Elements.cloud2, times: 3, v: 15, pos: 50, offset: 30, delay: 10 })
-                .with({ element: Enemies.redPlane, after: 20, times: 2, v: 50, pos: 70, direction: Direction.RIGHT })
-                .with({ element: Elements.cloud2, times: 3, v: 15, pos: 100, offset: -30, delay: 14 })
+                    { element: Elements.cloud1, after: 40, times: 4, v: 15, pos: 5, offset: 4, delay: 20 },
+                    { element: Elements.cloud1, after: 15, times: 4, v: 15, pos: 140, offset: -7, delay: 20 },
+                    { element: Enemies.greenPlane, after: 25, times: 2, v: 50, pos: 40, direction: Direction.LEFT },
+                    { element: Elements.cloud2, times: 3, v: 15, pos: 50, offset: 30, delay: 10 },
+                    { element: Enemies.redPlane, after: 20, times: 2, v: 50, pos: 70, direction: Direction.RIGHT },
+                    { element: Elements.cloud2, times: 3, v: 15, pos: 100, offset: -30, delay: 14 },
 
-                .with({ element: Enemies.grayPlane, after: 30, times: 3, v: 30, pos: 40, offset: 30, delay: 4, direction: Direction.LEFT })
-                .with({ element: Enemies.grayPlane, times: 3, v: 30, pos: 25, offset: 30, delay: 4, direction: Direction.RIGHT })
+                    { element: Enemies.grayPlane, after: 30, times: 3, v: 30, pos: 40, offset: 30, delay: 4, direction: Direction.LEFT },
+                    { element: Enemies.grayPlane, times: 3, v: 30, pos: 25, offset: 30, delay: 4, direction: Direction.RIGHT },
 
-                .with({ element: Enemies.bigPlane, after: 30, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP })
-                .with({ element: Elements.cloud1, times: 3, v: 8, pos: 150, offset: -3, delay: 37 })
-                .with({ element: Elements.cloud1, after: 10, times: 3, v: 10, pos: 5, offset: 4, delay: 27 })
-                .with({ element: Enemies.bigPlane, after: 20, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP })
+                    { element: Enemies.bigPlane, after: 30, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP },
+                    { element: Elements.cloud1, times: 3, v: 8, pos: 150, offset: -3, delay: 37 },
+                    { element: Elements.cloud1, after: 10, times: 3, v: 10, pos: 5, offset: 4, delay: 27 },
+                    { element: Enemies.bigPlane, after: 20, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP },
 
-                .with({ element: Enemies.frigate, after: 91, times: 3, v: 10, delay: 0, pos: 20, offset: 30, direction: Direction.LEFT })
-                .with({ element: Enemies.frigate, times: 3, v: 10, delay: 0, pos: 35, offset: 30, direction: Direction.RIGHT })
+                    { element: Enemies.frigate, after: 91, times: 3, v: 10, delay: 0, pos: 20, offset: 30, direction: Direction.LEFT },
+                    { element: Enemies.frigate, times: 3, v: 10, delay: 0, pos: 35, offset: 30, direction: Direction.RIGHT },
 
-                .with({ element: Elements.cloud2, after: 90, times: 3, v: 7, pos: 50, offset: 40, delay: 15 })
-                .with({ element: Enemies.bomberPlane, after: 30, times: 2, v: 12, delay: 25, pos: 50, offset: 70 })
+                    { element: Elements.cloud2, after: 90, times: 3, v: 7, pos: 50, offset: 40, delay: 15 },
+                    { element: Enemies.bomberPlane, after: 30, times: 2, v: 12, delay: 25, pos: 50, offset: 70 },
 
-                .with({ element: Elements.cloud1, after: 50, v: 15, pos: 30 })
-                .with({ element: Elements.cloud1, after: 50, v: 15, pos: 130 })
-                .with({ element: Elements.cloud1, after: 50, v: 15, pos: 80 })
+                    { element: Elements.cloud1, after: 50, v: 15, pos: 30 },
+                    { element: Elements.cloud1, after: 50, v: 15, pos: 130 },
+                    { element: Elements.cloud1, after: 50, v: 15, pos: 80 },
 
-                .with({ element: Elements.cloud2, times: 3, v: 7, pos: 115, offset: -40, delay: 15 })
-                .with({ element: Enemies.bomberPlane, after: 50, times: 3, v: 10, delay: 0, pos: 25, offset: 54 })
+                    { element: Elements.cloud2, times: 3, v: 7, pos: 115, offset: -40, delay: 15 },
+                    { element: Enemies.bomberPlane, after: 50, times: 3, v: 10, delay: 0, pos: 25, offset: 54 },
 
-                .with({ element: Elements.cloud1, times: 2, v: 20, pos: 95, offset: 45, delay: 10 })
-                .with({ element: Enemies.grayPlane, after: 50, times: 2, v: 70, delay: 0, pos: 50, offset: 60 })
-                .with({ element: Enemies.grayPlane, after: 7, v: 70, delay: 0, pos: halfWidth, offset: 0 })
-                .with({ element: Enemies.grayPlane, after: 7, times: 2, v: 70, delay: 0, pos: 50, offset: 60 })
+                    { element: Elements.cloud1, times: 2, v: 20, pos: 95, offset: 45, delay: 10 },
+                    { element: Enemies.grayPlane, after: 50, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
+                    { element: Enemies.grayPlane, after: 7, v: 70, delay: 0, pos: halfWidth, offset: 0 },
+                    { element: Enemies.grayPlane, after: 7, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
+                )
                 .build()
             .levels;
     }
