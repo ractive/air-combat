@@ -39,7 +39,7 @@ class LevelBuilder {
         return this;
     }
 
-    public with(...propsArray: EventProps[]): LevelBuilder {
+    public with(propsArray: EventProps[]): LevelBuilder {
         propsArray.forEach((props: EventProps) => {
             if (!props.delay && props.delay !== 0) {
                 props.delay = 3;
@@ -116,7 +116,7 @@ class StoryBook {
         const halfHeight: number = scene.screenHeight() / 2;
 
         return new GameBuilder()
-            .nextLevel().with(
+            .nextLevel().with([
                     { element: Elements.cloud1, after: 10, v: 30, pos: 120  },
                     { element: Elements.cloud1, after: 10, v: 35, pos: 60 },
                     { element: Enemies.greenPlane, v: 40, pos: 10, direction: Direction.LEFT },
@@ -134,10 +134,10 @@ class StoryBook {
                     { element: Elements.cloud1, v: 30, pos: 120 },
                     { element: Elements.cloud2, after: 15, v: 30, pos: 40 },
                     { element: Enemies.bigPlane, after: 5, v: 35, pos: 60 },
-                )
+                ])
                 .build()
 
-            .nextLevel().with(
+            .nextLevel().with([
                     { element: Elements.cloud1, after: 20, times: 2, v: 30, pos: 130, offset: -60, delay: 10 },
                     { element: Enemies.greenPlane, after: 10, times: 3, v: 50, pos: 50, direction: Direction.LEFT },
                     { element: Elements.cloud1, times: 2, v: 23, pos: 100, offset: -60, delay: 10 },
@@ -263,7 +263,7 @@ class StoryBook {
                     { element: Enemies.grayPlane, after: 50, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
                     { element: Enemies.grayPlane, after: 7, v: 70, delay: 0, pos: halfWidth, offset: 0 },
                     { element: Enemies.grayPlane, after: 7, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
-                )
+                ])
                 .build()
             .levels;
     }
