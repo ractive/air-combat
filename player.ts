@@ -19,18 +19,18 @@ class Player {
     `;
     private static readonly planeLeft = img`
         . . . . . 4 . . . . . . . . . .
-        . . 4 . . 4 . . 4 . . . . . . .
+        . . 4 . . 4 . . e . . . . . . .
         . 9 9 9 4 8 e 9 9 9 . . . . . .
-        . . 4 . 4 8 e . 4 . . . . . . .
-        4 4 4 4 4 4 4 4 4 4 e . . . . .
-        4 e e e e 4 b b b b e . . . . .
-        6 4 4 4 4 4 4 4 4 4 6 . . . . .
+        . . 4 . 4 8 e . e . . . . . . .
+        4 4 4 4 4 4 4 4 4 e . . . . . .
+        e e e e e 4 b b b b e . . . . .
+        6 4 4 4 4 4 4 4 4 e 6 . . . . .
         . . 4 e . . . 4 e . . . . . . .
         . . 4 e . . . 4 e . . . . . . .
         . . 4 e . . . 4 e . . . . . . .
-        . 4 4 4 . . . 4 4 e . . . . . .
-        . 3 4 2 e e e 2 4 3 . . . . . .
-        4 4 4 4 4 4 4 4 4 4 e . . . . .
+        . 4 4 4 . . . 4 e e . . . . . .
+        . 3 4 2 e e e 2 e 3 . . . . . .
+        4 4 4 4 4 4 4 4 4 e e . . . . .
         . . 4 e . . . 4 e . . . . . . .
     `;
     private static readonly planeStraight = img`
@@ -52,19 +52,20 @@ class Player {
     private static readonly planeRight = img`
         . . . . . . . . . . 4 . . . . .
         . . . . . . . 4 . . 4 . . 4 . .
-        . . . . . . 9 9 9 4 8 e 9 9 9 .
-        . . . . . . . 4 . 4 8 e . 4 . .
+        . . . . . . 9 9 9 4 8 4 9 9 9 .
+        . . . . . . . 4 . 4 8 4 . 4 . .
         . . . . . 3 4 4 4 4 4 4 4 4 4 4
-        . . . . . 3 e e e e 4 b b b b e
+        . . . . . 3 e e e e 4 b b b b 4
         . . . . . 6 4 4 4 4 4 4 4 4 4 6
-        . . . . . . . 4 e . . . 4 e . .
-        . . . . . . . 4 e . . . 4 e . .
-        . . . . . . . 4 e . . . 4 e . .
-        . . . . . . 4 4 4 . . . 4 4 e .
+        . . . . . . . 4 4 . . . 4 4 . .
+        . . . . . . . 4 4 . . . 4 4 . .
+        . . . . . . . 4 4 . . . 4 4 . .
+        . . . . . . 4 4 4 . . . 4 4 4 .
         . . . . . . 3 4 2 e e e 2 4 3 .
         . . . . . 3 4 4 4 4 4 4 4 4 4 4
         . . . . . . . 4 e . . . 4 e . .
     `;
+    private lastDirection: Direction = Direction.UP;
 
     constructor() {
         info.setLife(Player.maxLifes);
@@ -114,16 +115,30 @@ class Player {
             this.shoot();
         });
 
-        game.onUpdateInterval(250, function () {
+        game.onUpdateInterval(150, function () {
             if (controller.B.isPressed()) {
                 this.shoot();
             }
-            if (controller.left.isPressed()) {
-                this.sprite.setImage(Player.planeLeft);
-            } else if (controller.right.isPressed()) {
-                this.sprite.setImage(Player.planeRight);
-            } else {
+            
+            if (controller.left.isPressed() && this.lastDirection !== Direction.LEFT) {
+                if (this.lastDirection === Direction.RIGHT) {
+                    this.sprite.setImage(Player.planeStraight);
+                    this.lastDirection = Direction.UP;
+                } else {
+                    this.sprite.setImage(Player.planeLeft);
+                    this.lastDirection = Direction.LEFT;
+                }
+            } else if (controller.right.isPressed() && this.lastDirection !== Direction.RIGHT) {
+                if (this.lastDirection === Direction.LEFT) {
+                    this.sprite.setImage(Player.planeStraight);
+                    this.lastDirection = Direction.UP;
+                } else {
+                    this.sprite.setImage(Player.planeRight);
+                    this.lastDirection = Direction.RIGHT;
+                }
+            } else if (!controller.left.isPressed() && !controller.right.isPressed()) {
                 this.sprite.setImage(Player.planeStraight);
+                this.lastDirection = Direction.UP;
             }
         });
 
