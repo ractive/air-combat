@@ -298,8 +298,7 @@ class Tank extends Vehicle implements Enemy {
         const a = angleBetween(this.sprite, player.getSprite());
         for (let angle of [a - toRadian(15), a, a + toRadian(15)]) {
             const v = vComponents(30, angle);
-            const projectile = sprites.createProjectileFromSprite(Tank.projectileImage, this.sprite, v.vx, v.vy);
-            projectile.setKind(SpriteKind.EnemyProjectile);
+            sprites.createProjectile(Tank.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
         }
     }
 }
@@ -528,15 +527,16 @@ class GrayPlane extends Plane implements Enemy {
         let ax = 200 * Math.sign(this.sprite.vx);
         let ay = 200 * Math.sign(this.sprite.vy);
 
-        const projectile = sprites.createProjectileFromSprite(
+        const projectile = sprites.createProjectile(
             rotate(GrayPlane.projectileImage, this.movement.direction),
-            this.sprite,
             vx,
-            vy
+            vy,
+            SpriteKind.EnemyProjectile,
+            this.sprite
         );
         projectile.ax = ax;
         projectile.ay = ay;
-        projectile.setKind(SpriteKind.EnemyProjectile);
+
         // Make sure the projectile is on the screen so
         // that it does not get auto destoryed immediately
         let x = projectile.x, y = projectile.y;
@@ -585,14 +585,16 @@ class BigPlane extends Plane implements Enemy {
         super(BigPlane.image, mov, 3);
         this.sprite.z = cloudZ - 15; // below the clouds
         this.shoot();
-        this.onUpdateInterval(1200, () => {
+        this.onUpdateInterval(1500, () => {
             this.shoot();
         });
     }
 
     private shoot(): void {
-        const projectile = sprites.createProjectileFromSprite(BigPlane.projectileImage, this.sprite, 0, 70)
-        projectile.setKind(SpriteKind.EnemyProjectile)
+        let vx =  70 * Math.sign(this.sprite.vx);
+        let vy =  70 * Math.sign(this.sprite.vy);
+        const projectile = sprites.createProjectile(BigPlane.projectileImage, vx, vy, SpriteKind.EnemyProjectile, this.sprite);
+        projectile.setPosition(Math.max(projectile.x, 0), Math.max(projectile.y, 0));
     }
 
     public getScore(): number {
@@ -649,14 +651,9 @@ class BomberPlane extends Plane implements Enemy {
     }
 
     public shoot(): void {
-        let projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, 0, 100);
-        projectile.setKind(SpriteKind.EnemyProjectile);
-
-        projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, -50, 87);
-        projectile.setKind(SpriteKind.EnemyProjectile);
-        
-        projectile = sprites.createProjectileFromSprite(BomberPlane.projectileImage, this.sprite, 50, 87);
-        projectile.setKind(SpriteKind.EnemyProjectile);
+        sprites.createProjectile(BomberPlane.projectileImage, 0, 100, SpriteKind.EnemyProjectile, this.sprite);
+        sprites.createProjectile(BomberPlane.projectileImage, -50, 87, SpriteKind.EnemyProjectile, this.sprite);
+        sprites.createProjectile(BomberPlane.projectileImage, 50, 87, SpriteKind.EnemyProjectile, this.sprite);
     }
 
     public getScore(): number {
@@ -704,8 +701,7 @@ class Frigate extends Ship implements Enemy {
         const v = 30;
         const vx = v * Math.cos(a) * Math.sign(dx);
         const vy = v * Math.sin(a) * Math.sign(dx);
-        const projectile = sprites.createProjectileFromSprite(Frigate.projectileImage, this.sprite, vx, vy)
-        projectile.setKind(SpriteKind.EnemyProjectile)
+        sprites.createProjectile(Frigate.projectileImage, vx, vy, SpriteKind.EnemyProjectile, this.sprite);
     }
 
     public getScore() {
@@ -831,8 +827,7 @@ class BattleShip extends Ship implements Enemy {
     private shoot(): void {
         const a = angleBetween(this.sprite, player.getSprite());
         const v = vComponents(100, a);
-        const projectile = sprites.createProjectileFromSprite(BattleShip.projectileImage, this.sprite, v.vx, v.vy)
-        projectile.setKind(SpriteKind.EnemyProjectile)
+        sprites.createProjectile(BattleShip.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
     }
 
     public getScore() {
