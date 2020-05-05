@@ -67,6 +67,30 @@ function rotate(img: Image, direction: Direction): Image {
     }
 }
 
+function rotate45(img: Image, img45: Image, angleDegrees: number): Image {
+    switch(angleDegrees) {
+        case 180:
+        case -180:
+            return rotateImage(img, 180);
+        case 135:
+            return rotateImage(img45, 180);
+        case 90:
+            return rotateImage(img, -90);
+        case 45:
+            return rotateImage(img45, -90);
+        case 0:
+            return img;
+        case -45:
+            return img45;
+        case -90:
+            return rotateImage(img, 90);
+        case -135:
+            return rotateImage(img45, 90);
+        default:
+            return img
+    }
+}
+
 class Elements {
     public static cloud1 = (mov: Movement) => new Cloud(mov, 1);
     public static cloud2 = (mov: Movement) => new Cloud(mov, 2);
@@ -100,6 +124,7 @@ class Enemies {
     public static grayPlane = (mov: Movement) => Enemies.register(new GrayPlane(mov));
     public static bigPlane = (mov: Movement) => Enemies.register(new BigPlane(mov));
     public static bomberPlane = (mov: Movement) => Enemies.register(new BomberPlane(mov));
+    public static combatHelicopter = (mov: Movement) => Enemies.register(new CombatHelicopter(mov));
     public static frigate = (mov: Movement) => Enemies.register(new Frigate(mov));
     public static battleShip = (mov: Movement) => Enemies.register(new BattleShip(mov));
     public static tank = (mov: Movement) => Enemies.register(new Tank(mov));
@@ -356,32 +381,10 @@ class AntiAircraftMissile extends Plane implements Enemy {
         const degrees = Math.round(toDegrees(a) / 45) * 45;
         a = toRadian(degrees);
         const vc = vComponents(v, a);
-        return {image: AntiAircraftMissile.projectileImage(degrees), vx: vc.vx, vy: vc.vy};
+        return {image: rotate45(AntiAircraftMissile.image, AntiAircraftMissile.image45, degrees), vx: vc.vx, vy: vc.vy};
     }
 
-    private static projectileImage(angleDegrees: number): Image {
-        switch(angleDegrees) {
-            case 180:
-            case -180:
-                return rotateImage(AntiAircraftMissile.image, 180);
-            case 135:
-                return rotateImage(AntiAircraftMissile.image45, 180);
-            case 90:
-                return rotateImage(AntiAircraftMissile.image, -90);
-            case 45:
-                return rotateImage(AntiAircraftMissile.image45, -90);
-            case 0:
-                return AntiAircraftMissile.image;
-            case -45:
-                return AntiAircraftMissile.image45;
-            case -90:
-                return rotateImage(AntiAircraftMissile.image, 90);
-            case -135:
-                return rotateImage(AntiAircraftMissile.image45, 90);
-            default:
-                return AntiAircraftMissile.image
-        }
-    }
+
 
     public destroy() {
         if (this.timeout1) {
@@ -439,6 +442,82 @@ class AntiAircraftTower extends Building implements Enemy {
         this.sprite.setImage(AntiAircraftTower.image);
         this.missileLoaded = false;
         setTimeout(() => this.missileLoaded = true, 1500);
+    }
+}
+
+class CombatHelicopter extends Plane implements Enemy {
+    private static readonly image: Image = img`
+        . . . . . . . . . . . . b . . . . . . . . . .
+        . . . . . . . . . . . 6 b . . . . . . . . . .
+        . . . . . . . . . . . 6 b . . . . . . . . . .
+        . . . . . . . . . . . 6 b . . . . . . . . . .
+        . . . . . . . . . . . 6 . . . . . . . . . . .
+        . . . . . . . . . . 6 6 6 . . . . . . . . . .
+        . . . . . . . . . b b d b b . . . . . . . . .
+        . . . . . . . b 1 d 6 b 6 d d b . . . . . . .
+        . . . . . . . d b 1 6 b 6 d b 1 . . . . . . .
+        . . . . . . b 1 d b 6 b 6 b 1 d b . . . . . .
+        . . . . . . b d 7 6 b b b 6 a d b . . . . . .
+        . . . . . . d b b b b f b b b b d . . . . . .
+        . . . . . . b d 7 6 b b b 6 a d b . . . . . .
+        . . . . . . b 1 7 b 6 b 6 b a d b . . . . . .
+        . . . . . . . d b 6 6 b 6 6 b 1 . . . . . . .
+        . . . . . . . b 1 d 8 b 8 d d b . . . . . . .
+        . . . . . . . . . b b d b b . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . . . . . . . . .
+    `;
+    private static readonly image45: Image = img`
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . b .
+            . . . . . . . . . . . . . . . . . . . 6 b b .
+            . . . . . . . . . . . . . . . . . . 6 b b . .
+            . . . . . . . . . . . . . . . . 6 6 b b . . .
+            . . . . . . . . . b b d b b . 6 6 6 . . . . .
+            . . . . . . . b 1 d d b d d 6 b 6 . . . . . .
+            . . . . . . . d b d 7 b 6 6 b 6 . . . . . . .
+            . . . . . . b 1 d 7 6 b 6 6 6 d b . . . . . .
+            . . . . . . b d 7 6 b b b 6 6 d b . . . . . .
+            . . . . . . d b b b b f b b b b d . . . . . .
+            . . . . . . b d 8 6 b b b 6 a d b . . . . . .
+            . . . . . . b 1 d 8 6 b 6 a d d b . . . . . .
+            . . . . . . . d b d 8 b a d b 1 . . . . . . .
+            . . . . . . . b 1 d d b d d d b . . . . . . .
+            . . . . . . . . . b b d b b . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+            . . . . . . . . . . . . . . . . . . . . . . .
+        `;
+    private static readonly projectileImage: Image = img`
+        . 2 .
+        2 f 2
+        . 2 .
+    `;
+
+    constructor(mov: Movement) {
+        super(CombatHelicopter.image, mov, 5);
+        this.sprite.z = cloudZ - 10; // below the clouds
+
+        this.onUpdateInterval(400, () => {
+            let a = angleBetween(this.sprite, player.getSprite());
+            // Align to 45° angles
+            const degrees = Math.round(toDegrees(a) / 45) * 45;
+            this.sprite.setImage(rotate45(CombatHelicopter.image, CombatHelicopter.image45, degrees));
+        });
+
+        this.onUpdateInterval(1000, () => {
+            const a = angleBetween(this.sprite, player.getSprite());
+            const v = vComponents(100, a);
+            sprites.createProjectile(CombatHelicopter.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
+        });
     }
 }
 

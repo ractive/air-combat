@@ -117,6 +117,7 @@ function setup(): Level[] {
     const halfHeight: number = scene.screenHeight() / 2;
 
     return new GameBuilder()
+
         .nextLevel().with([
 
                 { element: Elements.cloud1, after: 10, v: 30, pos: 120  },
@@ -199,6 +200,27 @@ function setup(): Level[] {
                 { element: Elements.cloud2, v: 5, pos: 20 },
                 { element: Elements.cloud2, after: 30, v: 5, pos: 30 },
                 { element: Enemies.battleShip, after: 30, v: 15, pos: 30 },
+            ])
+            .build()
+
+        .nextLevel().with([
+                { element: Elements.cloud1, after: 20, times: 2, v: 27, pos: 110, offset: -50, delay: 15 },
+                { element: Enemies.greenPlane, after: 10, times: 2, v: 50, pos: 100, offset: 25, delay: 0 },
+                { element: Enemies.greenPlane, after: 4, times: 2, v: 50, pos: 100, offset: 25, delay: 0 },
+                { element: Elements.cloud1, times: 2, v: 23, pos: 130, offset: -50, delay: 10 },
+                { element: Elements.cloud1, after: 30, v: 23, pos: halfWidth, offset: -60, delay: 10 },
+                { element: Enemies.redPlane, times: 2, v: 80, pos: 10, offset: 25, delay: 0 },
+                { element: Enemies.redPlane, after: 3, times: 2, v: 80, pos: 10, offset: 25, delay: 0 },
+
+                { element: Elements.cloud1, after: 20, times: 2, v: 27, pos: 110, offset: -50, delay: 15 },
+                { element: Enemies.greenPlane, after: 10, times: 2, v: 50, pos: 110, offset: 25, delay: 0 },
+                { element: Enemies.greenPlane, after: 4, times: 2, v: 50, pos: 110, offset: 25, delay: 0 },
+                { element: Enemies.greenPlane, after: 4, times: 2, v: 50, pos: 110, offset: 25, delay: 0 },
+                { element: Elements.cloud1, times: 2, v: 23, pos: 130, offset: -50, delay: 10 },
+                { element: Elements.cloud1, after: 30, v: 23, pos: halfWidth, offset: -60, delay: 10 },
+                { element: Enemies.redPlane, after: 0, times: 2, v: 80, pos: 15, offset: 25, delay: 0 },
+                { element: Enemies.redPlane, after: 3, times: 2, v: 80, pos: 15, offset: 25, delay: 0 },
+                { element: Enemies.redPlane, after: 3, times: 2, v: 80, pos: 15, offset: 25, delay: 0 },
 
                 { element: Elements.island1, after: 10, times: 2, v: 10, pos: 120, offset: -20 },
                 { element: Enemies.tank, after: 19, times: 2, v: 10, pos: 95, offset: 30, delay: 15 },
@@ -241,7 +263,10 @@ function setup(): Level[] {
                 { element: Enemies.bigPlane, after: 15, v: 15, pos: 115 },
                 { element: Enemies.frigate, after: 15, times: 2, v: 15, pos: 100, offset: 30, delay: 0 },
                 { element: Enemies.battleShip, after: 15, v: 15, pos: 115 },
+            ])
+            .build()
 
+        .nextLevel().with([
                 { element: Elements.island2, after: 10, v: 10, pos: 30 },
                 { element: Enemies.antiAircraftTower, after: 27, v: 10, pos: 35 },
 
@@ -252,6 +277,10 @@ function setup(): Level[] {
                 { element: Elements.cloud1, after: 20, times: 2, v: 17, pos: 40, offset: 70, delay: 5 },
                 { element: Enemies.greenPlane, after: 30, v: 20, pos: halfHeight, direction: Direction.LEFT },
                 { element: Enemies.greenPlane, v: 20, pos: halfHeight, direction: Direction.RIGHT },
+
+                { element: Enemies.combatHelicopter, after: 20, v: 15, pos: 30 },
+                { element: Elements.cloud1, after: 0, times: 2, v: 20, pos: 30, offset: 70, delay: 20 },
+                { element: Enemies.combatHelicopter, after: 30, v: 15, pos: 100 },
 
                 { element: Enemies.greenPlane, v: 20, pos: halfWidth },
                 { element: Enemies.greenPlane, v: 20, pos: halfWidth, direction: Direction.UP },
@@ -300,11 +329,17 @@ function setup(): Level[] {
 
                 { element: Elements.cloud2, times: 3, v: 7, pos: 115, offset: -40, delay: 15 },
                 { element: Enemies.bomberPlane, after: 50, times: 3, v: 10, delay: 0, pos: 25, offset: 54 },
-
                 { element: Elements.cloud1, times: 2, v: 20, pos: 95, offset: 45, delay: 10 },
                 { element: Enemies.grayPlane, after: 50, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
                 { element: Enemies.grayPlane, after: 7, v: 70, delay: 0, pos: halfWidth, offset: 0 },
                 { element: Enemies.grayPlane, after: 7, times: 2, v: 70, delay: 0, pos: 50, offset: 60 },
+
+                { element: Enemies.combatHelicopter, times: 3, after: 40, v: 15, pos: 30, offset: 50, delay: 0 },
+                { element: Elements.cloud1, after: 0, times: 2, v: 20, pos: 30, offset: 70, delay: 20 },
+                { element: Enemies.combatHelicopter, times: 3, after: 70, v: 15, pos: 30, offset: 50, delay: 0, direction: Direction.UP },
+                { element: Elements.cloud2, after: 0, times: 2, v: 20, pos: 50, offset: 50, delay: 40 },
+                { element: Enemies.combatHelicopter, times: 2, after: 70, v: 15, pos: 30, offset: 30, delay: 10, direction: Direction.LEFT  },
+                { element: Enemies.combatHelicopter, times: 2, after: 0, v: 15, pos: 30, offset: 30, delay: 10, direction: Direction.RIGHT  },
             ])
             .build()
         .levels;
