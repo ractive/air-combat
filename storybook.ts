@@ -259,7 +259,7 @@ function setup(): Level[] {
                 { element: Elements.island3, after: 10, v: 10, pos: 10, offset: 0, delay: 20 },
                 { element: Enemies.tank, after: 12, times: 3, v: 10, pos: 7, offset: 0, delay: 15 },
 
-                { element: Elements.cloud2, after: 70, v: 15, pos: 30, offset: 50, delay: 10 },
+                { element: Elements.cloud2, after: 100, v: 15, pos: 30, offset: 50, delay: 10 },
             ])
             .build()
 
@@ -307,7 +307,7 @@ function setup(): Level[] {
                 { element: Enemies.greenPlane, after: 0, v: 50, pos: scene.screenHeight() - 25, direction: Direction.LEFT },
 
                 { element: Elements.island4, after: 10, v: 10, pos: 80 },
-                { element: Enemies.antiAircraftTower, after: 27, v: 10, pos: 80 },
+                { element: Enemies.antiAircraftTower, after: 20, times: 3, v: 10, pos: 63, offset: 17, delay: 0 },
                 { element: Elements.cloud1, after: 30, v: 23, pos: halfWidth, offset: -60, delay: 10 },
                 { element: Elements.cloud1, after: 20, v: 23, pos: halfWidth, offset: -60, delay: 10 },
 
@@ -359,7 +359,7 @@ function setup(): Level[] {
                 { element: Enemies.grayPlane, after: 30, times: 3, v: 30, pos: 40, offset: 30, delay: 4, direction: Direction.LEFT },
                 { element: Enemies.grayPlane, times: 3, v: 30, pos: 25, offset: 30, delay: 4, direction: Direction.RIGHT },
 
-                { element: Enemies.bigPlane, after: 30, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP },
+                { element: Enemies.bigPlane, after: 50, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP },
                 { element: Elements.cloud1, times: 3, v: 8, pos: 150, offset: -3, delay: 37 },
                 { element: Elements.cloud1, after: 10, times: 3, v: 10, pos: 5, offset: 4, delay: 27 },
                 { element: Enemies.bigPlane, after: 20, times: 3, v: 10, pos: 60, offset: 20, direction: Direction.UP },
@@ -460,10 +460,12 @@ function setup(): Level[] {
 
                 { element: Elements.cloud1, after: 70, times: 3, v: 20, pos: 30, offset: 45, delay: 20 },
                 { element: Enemies.bomberPlane, after: 30, v: 20, pos: halfWidth, direction: Direction.UP },
-
                 { element: Enemies.bomberPlane, after: 50, times: 2, v: 20, pos: halfWidth - 30, offset: 60 },
 
                 { element: Enemies.grayPlane, after: 70, times: 6, v: 80, delay: 0, pos: 10, offset: 27 },
+
+                { element: Elements.cloud2, after: 50, times: 3, v: 15, pos: 30, offset: 45, delay: 0 },
+                { element: Enemies.bomberPlane, after: 7, times: 3, v: 20, pos: halfWidth - 70, offset: 70 },
             ])
             .build()
         .levels;
