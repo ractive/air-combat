@@ -165,6 +165,7 @@ function setup(): Level[] {
                 { element: Enemies.grayPlane, after: 0, v: 100, pos: 45, direction: Direction.RIGHT },
                 { element: Enemies.grayPlane, after: 7, v: 100, pos: 20, direction: Direction.LEFT },
                 { element: Enemies.grayPlane, after: 0, v: 100, pos: 25, direction: Direction.RIGHT },
+
             ])
             .build()
 
@@ -257,6 +258,8 @@ function setup(): Level[] {
                 { element: Enemies.tank, after: 10, times: 3, v: 10, pos: 150, offset: 0, delay: 15 },
                 { element: Elements.island3, after: 10, v: 10, pos: 10, offset: 0, delay: 20 },
                 { element: Enemies.tank, after: 12, times: 3, v: 10, pos: 7, offset: 0, delay: 15 },
+
+                { element: Elements.cloud2, after: 70, v: 15, pos: 30, offset: 50, delay: 10 },
             ])
             .build()
 
@@ -474,23 +477,31 @@ export function play() {
     const levels = setup();
     let currentLevel = levels.shift();
     levelInfo(currentLevel);
+    let lastElementAtTick = 0;
     let ticks = 0;
     game.onUpdateInterval(100, () => {
         ticks++;
-        while (currentLevel && currentLevel.storyBook.length > 0 && currentLevel.storyBook[0].t <= ticks) {
+
+        while (currentLevel.storyBook.length > 0 && currentLevel.storyBook[0].t <= ticks) {
             const event = currentLevel.storyBook.shift();
             event.createElement();
-            if (currentLevel.storyBook.length == 0) {
-                setTimeout(() => {
-                    currentLevel = levels.shift();
-                    if (currentLevel) {
-                        ticks = 0;
-                        levelInfo(currentLevel);
-                    } else {
-                        light.showAnimation(light.runningLightsAnimation, 3000);
-                        game.over(true);
-                    }
-                }, 10000);
+            lastElementAtTick = ticks;
+        }
+
+        if (currentLevel.storyBook.length == 0) {
+            // End of level
+            if (ticks > lastElementAtTick + 100) {
+                // 10s after the last element has been created
+                currentLevel = levels.shift();
+                if (currentLevel) {
+                    // next level
+                    ticks = 0;
+                    lastElementAtTick = 0
+                    levelInfo(currentLevel);
+                } else {
+                    light.showAnimation(light.runningLightsAnimation, 3000);
+                    game.over(true);
+                }
             }
         }
     })

@@ -115,7 +115,7 @@ class Player {
             this.shoot();
         });
 
-        game.onUpdateInterval(150, function () {
+        game.onUpdateInterval(250, function () {
             if (controller.B.isPressed()) {
                 this.shoot();
             }
