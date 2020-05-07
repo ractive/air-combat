@@ -26,3 +26,4 @@ Contains the level configurations. It can be defined, which enemy or element sho
 The exported `play` function then makes those elements and enemies appear at the right time.
 ### interval.ts
 Allows to subscribe **and unsubscribe** callbacks to be called regularly with `game.onUpdate`. This allows using `game.onUpdate` with short lived objects like the enemy objects.
+
