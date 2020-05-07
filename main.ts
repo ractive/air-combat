@@ -102,21 +102,23 @@ class Elements {
 }
 
 class Enemies {
-    public static redPlane = (mov: Movement) => SpriteRegistration.register(new RedPlane(mov));
-    public static greenPlane = (mov: Movement) => SpriteRegistration.register(new GreenPlane(mov));
-    public static grayPlane = (mov: Movement) => SpriteRegistration.register(new GrayPlane(mov));
-    public static bigPlane = (mov: Movement) => SpriteRegistration.register(new BigPlane(mov));
-    public static bomberPlane = (mov: Movement) => SpriteRegistration.register(new BomberPlane(mov));
-    public static combatHelicopter = (mov: Movement) => SpriteRegistration.register(new CombatHelicopter(mov));
-    public static frigate = (mov: Movement) => SpriteRegistration.register(new Frigate(mov));
-    public static battleShip = (mov: Movement) => SpriteRegistration.register(new BattleShip(mov));
-    public static tank = (mov: Movement) => SpriteRegistration.register(new Tank(mov));
-    public static antiAircraftTower = (mov: Movement) => SpriteRegistration.register(new AntiAircraftTower(mov));
-    public static antiAircraftMissile = (x: number, y: number) => SpriteRegistration.register(new AntiAircraftMissile(x, y));
+    public static redPlane = (mov: Movement) => new RedPlane(mov);
+    public static greenPlane = (mov: Movement) => new GreenPlane(mov);
+    public static grayPlane = (mov: Movement) => new GrayPlane(mov);
+    public static bigPlane = (mov: Movement) => new BigPlane(mov);
+    public static bomberPlane = (mov: Movement) => new BomberPlane(mov);
+    public static combatHelicopter = (mov: Movement) => new CombatHelicopter(mov);
+    public static frigate = (mov: Movement) => new Frigate(mov);
+    public static battleShip = (mov: Movement) => new BattleShip(mov);
+    public static tank = (mov: Movement) => new Tank(mov);
+    public static antiAircraftTower = (mov: Movement) => new AntiAircraftTower(mov);
+    public static antiAircraftMissile = (x: number, y: number) => new AntiAircraftMissile(x, y);
 
     public static destroyAll(sprite: Sprite): void {
-        SpriteRegistration.all().forEach((enemy: Enemy) => {
-            enemy.gotHitBy(sprite);
+        Sprites.all().forEach((object: Sprites.SpriteWrapper) => {
+            if (object instanceof BaseEnemy) {
+                (object as Enemy).gotHitBy(sprite);
+            }
         });
         sprites.allOfKind(SpriteKind.EnemyProjectile).forEach((projectile: Sprite) => {
             projectile.destroy();
@@ -124,8 +126,7 @@ class Enemies {
     }
 }
 
-
-interface Element extends SpriteRegistration.SpriteAttached {
+interface Element extends Sprites.SpriteWrapper {
 
 }
 
@@ -150,8 +151,6 @@ abstract class BaseObject {
     private intervalFunctions: { (): void; } [] = [];
 
     constructor(image: Image, mov: Movement) {
-
-
         if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
             this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
 
@@ -193,6 +192,8 @@ abstract class BaseObject {
         
         this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
         this.movement = mov;
+
+        Sprites.register(this);
     }
 
     public destroy(): void {
@@ -1038,7 +1039,7 @@ class Island extends BaseObject implements Element {
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemiesprite) {
-    const plane: Enemy = SpriteRegistration.fromSprite(enemiesprite) as Enemy;
+    const plane: Enemy = Sprites.fromSprite(enemiesprite) as Enemy;
     if (plane) {
         plane.gotHitBy(projectile);
     }

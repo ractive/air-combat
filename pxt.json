@@ -14,7 +14,7 @@
         "player.ts",
         "powerup.ts",
         "storybook.ts",
-        "sprite-registration.ts"
+        "sprites.ts"
     ],
     "testFiles": [
         "test.ts"
