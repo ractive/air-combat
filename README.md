@@ -1,34 +1,28 @@
-# air-combat ![Build Status Abzeichen](https://github.com/ractive/air-combat/workflows/MakeCode/badge.svg)
+# Air Combat ![Build Status Abzeichen](https://github.com/ractive/air-combat/workflows/MakeCode/badge.svg)
 
+Air Combat is a classic arcade shooter game for arcade.makecode.com.
 
+<img width="400" alt="air-combat" src="https://user-images.githubusercontent.com/783861/81269256-5ae21600-9049-11ea-8df7-f8ef9c46f561.png">
 
-## Use this extension
+## How to play
 
-Dieses Repository kann als **Erweiterung** in MakeCode hinzugefügt werden.
+Press and hold button B to shoot and drop bombs with A (if you collected any).
+Collect the green powerups to upgrade your weapon and to get points.
+The hearts will give you more lifes (max. 5). If you got shot or collide with an enemy, first the weapon upgrades are destroyed before you loose a life.
 
-* open https://arcade.makecode.com/
-* klicke auf **Neues Projekt**
-* klicke auf **Erweiterungen** unter dem Zahnrad-Menü
-* search for the URL of this repository and import
+## Code
+Contributions are welcome. Some nicer artwork, some better tuned levels and more types of enemies would always be nice.
 
-## Edit this extension
-
-Um dieses Repository in MakeCode zu bearbeiten.
-
-* open https://arcade.makecode.com/
-* klicke auf **Importieren** und dann auf **Importiere URL**
-* paste the repository URL and click import
-
-## Blockvorschau
-
-Dieses Bild zeigt den Blockcode vom letzten Commit im Master an.
-Die Aktualisierung dieses Bildes kann einige Minuten dauern.
-
-![Eine gerenderte Ansicht der Blöcke](https://github.com/ractive/air-combat/raw/master/.makecode/blocks.png)
-
-## Supported targets
-
-* for PXT/arcade
-* for PXT/arcade
-(The metadata above is needed for package search.)
-
+This game is written in Typescript and cannot be developed in block mode.
+The game is split in various files:
+### main.ts
+Contains all the classes that represent the enemies and helper classes to create them.
+### player.ts
+Hosts the `Player` class, which draws the player's plane, handles the shooting and picking up powerups.
+### powerup.ts
+`PowereUp` class that shows and hides powerups in random intervals.
+### storybook.ts
+Contains the level configurations. It can be defined, which enemy or element should appear when, where, with what velocity.
+The exported `play` function then makes those elements and enemies appear at the right time.
+### interval.ts
+Allows to subscribe **and unsubscribe** callbacks to be called regularly with `game.onUpdate`. This allows using `game.onUpdate` with short lived objects like the enemy objects.
