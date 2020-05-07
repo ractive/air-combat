@@ -166,7 +166,7 @@ class Player {
         });
 
         sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
-            const enemy = Enemies.fromSprite(enemySprite);
+            const enemy: Enemy = SpriteRegistration.fromSprite(enemySprite) as Enemy;
             if (enemySprite.z < 10) {
                 // no collision with low objects like vehicles or ships
                 return;
