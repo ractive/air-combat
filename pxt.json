@@ -9,7 +9,6 @@
         "pxt-interval": "github:ractive/pxt-interval#v0.0.1"
     },
     "files": [
-        "main.blocks",
         "main.ts",
         "README.md",
         "player.ts",
