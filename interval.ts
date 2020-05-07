@@ -1,43 +1,66 @@
-interface Execution {
-    id: number;
-    t: number;
-    interval: number;
-    f: () => void;
-}
+namespace Interval {
+    interface Execution {
+        id: number;
+        t: number;
+        interval: number;
+        f: () => void;
+    }
 
-class Interval {
-    private static createHeap() {
+    function createHeap() {
         return new Heap((a: Execution, b: Execution) => a.t - b.t);
     }
 
-    private id: number = 0;
-    private nextExecutionHeap = Interval.createHeap();
+    let id: number = 0;
+    let nextExecutionHeap: Heap<Execution> = undefined;
 
-    constructor() {
-        game.onUpdate(() => {
-            while (this.nextExecutionHeap.length && this.nextExecutionHeap.peek().t <= game.runtime()) {
-                const execution = this.nextExecutionHeap.pop();
-                // execute and...
+    function init() {
+        if (nextExecutionHeap) {
+            return;
+        }
+
+        nextExecutionHeap = createHeap();
+        game.eventContext().registerFrameHandler(scene.UPDATE_INTERVAL_PRIORITY, () => {
+            while (nextExecutionHeap.length && nextExecutionHeap.peek().t <= game.runtime()) {
+                const execution = nextExecutionHeap.pop();
+                // execute...
                 execution.f();
-                // schedule the next execution
+                // ... and schedule the next execution
                 execution.t = game.runtime() + execution.interval;
-                this.nextExecutionHeap.push(execution);
+                nextExecutionHeap.push(execution);
             }
         });
     }
 
-    public on(interval: number, f: () => void): () => void {
-        const id = this.id++;
-        this.nextExecutionHeap.push({id, t: game.runtime() + interval, interval, f});
+    /**
+     * Registers the given callback function f to be executed every interval milliseconds.
+     * Returns a function that can be called to unregister this interval handler.
+     * 
+     * ```
+     * const remove = Interval.on(500, () => console.log("got called"));
+     * ....
+     * remove(); // unregisters the callback
+     * ```
+     * 
+     * @param interval in milliseconds, when the given callback should be called
+     * @return a function that can be called to unregister the handler
+     */
+    export function on(interval: number, f: () => void): () => void {
+        init();
+
+        nextExecutionHeap.push({id: id++, t: game.runtime() + interval, interval, f});
+
+        // return a function that removes this callback
         return () => {
-            const newHeap = Interval.createHeap();
-            while (this.nextExecutionHeap.length()) {
-                const execution = this.nextExecutionHeap.pop();
+            const newHeap = createHeap();
+            while (nextExecutionHeap.length()) {
+                const execution = nextExecutionHeap.pop();
                 if (execution.id !== id) {
                     newHeap.push(execution);
                 }
             }
-            this.nextExecutionHeap = newHeap;
+            nextExecutionHeap = newHeap;
         };
     }
+
 }
+

@@ -165,11 +165,10 @@ interface Movement {
 abstract class BaseObject {
     protected readonly sprite: Sprite;
     protected movement: Movement;
-    private readonly interval: Interval;
     private intervalFunctions: { (): void; } [] = [];
 
     constructor(image: Image, mov: Movement) {
-        this.interval = new Interval();
+
 
         if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
             this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
@@ -219,7 +218,7 @@ abstract class BaseObject {
     }
 
     public onUpdateInterval(interval: number, f: () => void) {
-        const removeInterval = this.interval.on(interval, f);
+        const removeInterval = Interval.on(interval, f);
         this.intervalFunctions.push(removeInterval);
     }
 
