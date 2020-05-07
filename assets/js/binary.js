@@ -1,4 +1,4 @@
-// meta={"simUrl":"https://trg-arcade.userpxt.io/v0.16.79/---simulator","cdnUrl":"https://pxt.azureedge.net","version":"1.0.0","target":"arcade","targetVersion":"0.16.79","repo":"ractive/air-combat"}
+// meta={"simUrl":"https://trg-arcade.userpxt.io/v0.16.79/---simulator","cdnUrl":"https://pxt.azureedge.net","version":"1.0.1","target":"arcade","targetVersion":"0.16.79","repo":"ractive/air-combat"}
 // total=2065740 new=25.39% cached=68.52% other=6.09%
 (function (ectx) {
 'use strict';
@@ -563,7 +563,7 @@ const pxsim_pxtrt = pxsim.pxtrt;
 const pxsim_numops = pxsim.numops;
 
 
-function _main___P329565(s) {
+function _main___P330616(s) {
 let r0 = s.r0, step = s.pc;
 s.pc = -1;
 
@@ -1186,13 +1186,13 @@ switch (step) {
     return leave(s, r0)
   default: oops()
 } } }
-_main___P329565.info = {"start":0,"length":0,"line":0,"column":0,"endLine":0,"endColumn":0,"fileName":"pxt_modules/pxt-heap/main.ts","functionName":"<main>","argumentNames":[]}
-_main___P329565.continuations = [  ]
+_main___P330616.info = {"start":0,"length":0,"line":0,"column":0,"endLine":0,"endColumn":0,"fileName":"pxt_modules/pxt-heap/main.ts","functionName":"<main>","argumentNames":[]}
+_main___P330616.continuations = [  ]
 
-function _main___P329565_mk(s) {
+function _main___P330616_mk(s) {
     checkStack(s.depth);
     return {
-        parent: s, fn: _main___P329565, depth: s.depth + 1,
+        parent: s, fn: _main___P330616, depth: s.depth + 1,
         pc: 0, retval: undefined, r0: undefined, overwrittenPC: false, lambdaArgs: null,
   tmp_0: undefined,
   tmp_1: undefined,
@@ -41676,8 +41676,8 @@ switch (step) {
 
     s.a___225214 = undefined;
     s.angle___225224 = undefined;
-    s.unnamed2958___U2 = undefined;
-    s.unnamed2959___U3 = undefined;
+    s.unnamed2978___U2 = undefined;
+    s.unnamed2979___U3 = undefined;
     s.v___225234 = undefined;
     if (s.lambdaArgs) {
       s.arg0 = (s.lambdaArgs[0]);
@@ -41710,15 +41710,15 @@ switch (step) {
     r0 = (s.tmp_5 + s.tmp_6);
     s.tmp_4 = r0;
     r0 = pxsim_Array__push(s.tmp_0, s.tmp_4);
-    s.unnamed2958___U2 = (s.tmp_0);
-    s.unnamed2959___U3 = (0);
+    s.unnamed2978___U2 = (s.tmp_0);
+    s.unnamed2979___U3 = (0);
   case 1:
-    s.tmp_0 = r0 = s.unnamed2959___U3;
-    r0 = pxsim_Array__length(s.unnamed2958___U2);
+    s.tmp_0 = r0 = s.unnamed2979___U3;
+    r0 = pxsim_Array__length(s.unnamed2978___U2);
     s.tmp_1 = r0;
     r0 = (s.tmp_0 < s.tmp_1);
     if (!r0) { step = 2; continue; }
-    r0 = pxsim_Array__getAt(s.unnamed2958___U2, s.unnamed2959___U3);
+    r0 = pxsim_Array__getAt(s.unnamed2978___U2, s.unnamed2979___U3);
     s.angle___225224 = (r0);
     s.tmp_2 = vComponents__P224504_mk(s);
     s.tmp_2.arg0 = 30;
@@ -41761,11 +41761,11 @@ switch (step) {
     s.pc = 5; return s.tmp_0;
   case 5:
     r0 = s.retval;
-    r0 = (s.unnamed2959___U3 + 1);
-    s.unnamed2959___U3 = (r0);
+    r0 = (s.unnamed2979___U3 + 1);
+    s.unnamed2979___U3 = (r0);
     { step = 1; continue; }
   case 2:
-    s.unnamed2958___U2 = (undefined);
+    s.unnamed2978___U2 = (undefined);
     r0 = undefined;
     return leave(s, r0)
   default: oops()
@@ -41786,8 +41786,8 @@ function Tank_shoot__P224846_mk(s) {
   tmp_6: undefined,
   a___225214: undefined,
   angle___225224: undefined,
-  unnamed2958___U2: undefined,
-  unnamed2959___U3: undefined,
+  unnamed2978___U2: undefined,
+  unnamed2979___U3: undefined,
   v___225234: undefined,
   arg0: undefined,
 } }
@@ -69469,5 +69469,5 @@ const effects_SceneAnchor__C220896_VT = mkVTable({
 
 const breakpoints = setupDebugger(1, ["Player_bombImage___296247","Player_projectileImg___296250","Player_planeLeft___296253","Player_planeStraight___296256","Player_planeRight___296259","Powerup___223273","BombPowerup___223074","LifePowerup___223316","EnemyProjectile___223262","Elements_cloud1___223834","Elements_cloud2___223844","Elements_island1___223849","Elements_island2___224017","Elements_island3___224027","Elements_island4___224001","Enemies_redPlane___223854","Enemies_greenPlane___223838","Enemies_grayPlane___223862","Enemies_bigPlane___223870","Enemies_bomberPlane___224154","Enemies_combatHelicopter___224231","Enemies_frigate___223930","Enemies_battleShip___223961","Enemies_tank___223998","Enemies_antiAircraftTower___224055","Enemies_antiAircraftMissile___224861","Tank_projectileImage___225200","Tank_image___225203","AntiAircraftMissile_image___225250","AntiAircraftMissile_image45___225253","AntiAircraftTower_image___225354","CombatHelicopter_image___225447","CombatHelicopter_image45___225450","CombatHelicopter_projectileImage___225453","GreenPlane_image___225512","RedPlane_image___225526","GrayPlane_projectileImage___225534","GrayPlane_image___225537","BigPlane_projectileImage___225623","BigPlane_image___225626","BomberPlane_projectileImage___225679","BomberPlane_image___225682","Frigate_projectileImage___225719","Frigate_image___225722","BattleShip_projectileImage___225784","BattleShip_image___225787","Cloud_cloud1___225820","Cloud_cloud2___225823","Island_island___225843","player___225221","powerUp___223291","bombPowerUp___223312","lifePowerUp___223334","Enemies_enemies___224712"])
 
-return _main___P329565
+return _main___P330616
 })
