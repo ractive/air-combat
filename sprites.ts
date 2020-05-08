@@ -5,11 +5,28 @@ namespace Sprites {
      * when the corresponding sprite is destroyed.
      */
     export interface SpriteWrapper {
-        getSprite(): Sprite;
+        sprite: Sprite;
         destroy(): void;
     }
 
     let objects: SpriteWrapper[] = [];
+	
+    /**
+     * An abstract baase class you can use to derive your classes from.
+     * All instances are registered with the "register" function after
+     * being created.
+     */
+    export abstract class BaseSpriteWrapper implements SpriteWrapper {
+        public readonly sprite: Sprite;
+        constructor(sprite: Sprite) {
+            this.sprite = sprite;
+            register(this);
+        }
+
+        public destroy(): void {
+            
+        };
+    }
 
     /**
      * Registers a SpriteWrapper object, which onDestroy
@@ -18,10 +35,10 @@ namespace Sprites {
     export function register(object: SpriteWrapper): void {
         objects.push(object);
 
-        object.getSprite().onDestroyed(() => {
+        object.sprite.onDestroyed(() => {
             object.destroy();
             objects = objects.filter(
-                p => p.getSprite().id !== object.getSprite().id
+                p => p.sprite.id !== object.sprite.id
             );
         });
     }
@@ -33,7 +50,7 @@ namespace Sprites {
      * 
      */
     export function fromSprite(sprite: Sprite): SpriteWrapper {
-        return objects.find(e => e.getSprite().id === sprite.id);
+        return objects.find(e => e.sprite.id === sprite.id);
     }
 
     /**

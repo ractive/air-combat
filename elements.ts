@@ -145,14 +145,14 @@ interface Movement {
     vy?: number;
 }
 
-abstract class BaseObject {
-    protected readonly sprite: Sprite;
+abstract class BaseObject extends Sprites.BaseSpriteWrapper {
     protected movement: Movement;
     private intervalFunctions: { (): void; } [] = [];
 
-    constructor(image: Image, mov: Movement) {
+    private static createSprite(image: Image, mov: Movement): Sprite {
+        let sprite: Sprite = undefined;
         if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
-            this.sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
+            sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
 
             let x: number, y: number, vx: number, vy: number;
             switch (mov.direction) {
@@ -182,31 +182,30 @@ abstract class BaseObject {
                     break;
             }
 
-            this.sprite.setPosition(x, y);
-            this.sprite.setVelocity(vx, vy);
+            sprite.setPosition(x, y);
+            sprite.setVelocity(vx, vy);
         } else if (mov.startX != undefined && mov.startY != undefined) {
-            this.sprite = sprites.create(image, SpriteKind.Enemy);
-            this.sprite.setPosition(mov.startX, mov.startY);
-            this.sprite.setVelocity(mov.vx, mov.vy);
+            sprite = sprites.create(image, SpriteKind.Enemy);
+            sprite.setPosition(mov.startX, mov.startY);
+            sprite.setVelocity(mov.vx, mov.vy);
         }
         
-        this.sprite.setFlag(SpriteFlag.AutoDestroy, true);
-        this.movement = mov;
+        sprite.setFlag(SpriteFlag.AutoDestroy, true);
+        return sprite;
+    }
 
-        Sprites.register(this);
+    constructor(image: Image, mov: Movement) {
+        super(BaseObject.createSprite(image, mov));
+        this.movement = mov;
     }
 
     public destroy(): void {
-        this.intervalFunctions.forEach((f) => f());
+        this.intervalFunctions.forEach(f => f());
     }
 
     public onUpdateInterval(interval: number, f: () => void) {
         const removeInterval = Interval.on(interval, f);
         this.intervalFunctions.push(removeInterval);
-    }
-
-    public getSprite(): Sprite {
-        return this.sprite
     }
 }
 
