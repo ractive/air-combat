@@ -17,13 +17,15 @@ namespace Sprites {
      * being created.
      */
     export abstract class BaseSpriteWrapper implements SpriteWrapper {
-        public sprite: Sprite;
-        constructor(sprite?: Sprite) {
+        public readonly sprite: Sprite;
+        constructor(sprite: Sprite) {
             this.sprite = sprite;
             register(this);
         }
 
-        public abstract destroy(): void;
+        public destroy(): void {
+            
+        };
     }
 
     /**

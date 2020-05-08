@@ -145,7 +145,11 @@ interface Movement {
     vy?: number;
 }
 
- function createSprite(image: Image, mov: Movement): Sprite {
+abstract class BaseObject extends Sprites.BaseSpriteWrapper {
+    protected movement: Movement;
+    private intervalFunctions: { (): void; } [] = [];
+
+    private static createSprite(image: Image, mov: Movement): Sprite {
         let sprite: Sprite = undefined;
         if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
             sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
@@ -190,20 +194,13 @@ interface Movement {
         return sprite;
     }
 
-
-abstract class BaseObject extends Sprites.BaseSpriteWrapper {
-    protected movement: Movement;
-    private intervalFunctions: { (): void; } [] = [];
-
-   
     constructor(image: Image, mov: Movement) {
-        super();
-        this.sprite = createSprite(image, mov);
+        super(BaseObject.createSprite(image, mov));
         this.movement = mov;
     }
 
     public destroy(): void {
-        this.intervalFunctions.forEach((f) => f());
+        this.intervalFunctions.forEach(f => f());
     }
 
     public onUpdateInterval(interval: number, f: () => void) {
