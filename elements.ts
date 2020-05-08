@@ -115,7 +115,7 @@ class Enemies {
     public static antiAircraftMissile = (x: number, y: number) => new AntiAircraftMissile(x, y);
 
     public static destroyAll(sprite: Sprite): void {
-        Sprites.all().forEach((object: Sprites.SpriteWrapper) => {
+        SpriteWrapper.all().forEach((object: SpriteWrapper.SpriteWrapper) => {
             if (object instanceof BaseEnemy) {
                 (object as Enemy).gotHitBy(sprite);
             }
@@ -126,7 +126,7 @@ class Enemies {
     }
 }
 
-interface Element extends Sprites.SpriteWrapper {
+interface Element extends SpriteWrapper.SpriteWrapper {
 
 }
 
@@ -145,7 +145,7 @@ interface Movement {
     vy?: number;
 }
 
-abstract class BaseObject extends Sprites.BaseSpriteWrapper {
+abstract class BaseObject extends SpriteWrapper.Support {
     protected movement: Movement;
     private intervalFunctions: { (): void; } [] = [];
 
@@ -1038,7 +1038,7 @@ class Island extends BaseObject implements Element {
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (projectile, enemiesprite) {
-    const plane: Enemy = Sprites.fromSprite(enemiesprite) as Enemy;
+    const plane: Enemy = SpriteWrapper.fromSprite(enemiesprite) as Enemy;
     if (plane) {
         plane.gotHitBy(projectile);
     }
