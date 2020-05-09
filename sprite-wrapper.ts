@@ -1,5 +1,5 @@
 namespace SpriteWrapper {
-    let objects: any = {};
+    const objects: { [id: string]: SpriteWrapper } = {};
 
     /**
      * Classes that wrap a Sprite and want to register instances
@@ -24,9 +24,7 @@ namespace SpriteWrapper {
             register(this);
         }
 
-        // pxt compiler crashes when declaring a method abstract
-        public onDestroyed(): void {
-        };
+        public onDestroyed(): void { };
     }
 
     /**
@@ -57,6 +55,6 @@ namespace SpriteWrapper {
      * Returns all registered SpriteWrapper objects
      */
     export function all(): SpriteWrapper[] {
-        return objects;
+        return objects.values();
     }
 }
