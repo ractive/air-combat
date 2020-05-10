@@ -162,7 +162,7 @@ abstract class BaseObject extends SpriteWrapper.Support {
     protected movement: Movement;
     private intervalFunctions: { (): void; } [] = [];
 
-    private static createSprite(image: Image, mov: Movement): Sprite {
+    private static createSprite(images: Images, mov: Movement): Sprite {
         let sprite: Sprite = undefined;
         if (isRelativeMovement(mov)) {
             //mov = mov as RelativeMovement;
@@ -209,8 +209,8 @@ abstract class BaseObject extends SpriteWrapper.Support {
         return sprite;
     }
 
-    constructor(image: Image, mov: Movement) {
-        super(BaseObject.createSprite(image, mov));
+    constructor(images: Images, mov: Movement) {
+        super(BaseObject.createSprite(images, mov));
         this.movement = mov;
     }
 
@@ -228,8 +228,8 @@ abstract class BaseEnemy extends BaseObject {
     protected remainingHits: number = 1;
     protected hits: number = 1;
 
-    constructor(image: Image, mov: Movement, hits: number = 1) {
-        super(image, mov);
+    constructor(images: Images, mov: Movement, hits: number = 1) {
+        super(images, mov);
 
         this.remainingHits = hits;
         this.hits = hits;
@@ -261,31 +261,38 @@ abstract class BaseEnemy extends BaseObject {
 }
 
 abstract class Vehicle extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 10) {
-        super(image, mov, hits);
+    constructor(images: Images, mov: Movement, hits: number = 10) {
+        super(images, mov, hits);
         this.sprite.z = 1;
     }
 }
 
 abstract class Building extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 20) {
-        super(image, mov, hits);
+    constructor(images: Images, mov: Movement, hits: number = 20) {
+        super(images, mov, hits);
         this.sprite.z = 1;
     }
 }
 
 abstract class Ship extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 6) {
-        super(image, mov, hits);
+    constructor(images: Images, mov: Movement, hits: number = 6) {
+        super(images, mov, hits);
         this.sprite.z = 0;
     }
 }
 
 abstract class Plane extends BaseEnemy {
-    constructor(image: Image, mov: Movement, hits: number = 1) {
-        super(image, mov, hits);
+    constructor(images: Images, mov: Movement, hits: number = 1) {
+        super(images, mov, hits);
         this.sprite.z = cloudZ + 10; // above the clouds
     }
+}
+
+interface Images {
+    down: Image;
+    left: Image;
+    up: Image;
+    right: Image;
 }
 
 class Tank extends Vehicle implements Enemy {
@@ -294,22 +301,59 @@ class Tank extends Vehicle implements Enemy {
         f 5 f
         4 f 4
     `;
-    private static readonly image: Image = img`
-          . . c 4 c 4 c . .
-          f f 6 6 6 6 6 f f
-          e e 6 b 7 b 6 e e
-          f f b 7 7 7 b f f
-          e e 7 7 c 7 7 e e
-          f f b 7 7 7 b f f
-          e e 6 b 7 b 6 e e
-          f f 6 6 7 6 6 f f
-          e e 6 6 7 6 6 e e
-          . . c 6 7 6 c . .
-          . . . . f . . . .
-      `;
+    private static readonly images: Images = {
+        down: img`
+            . . c 4 c 4 c . .
+            f f 6 6 6 6 6 f f
+            e e 6 b 7 b 6 e e
+            f f b 7 7 7 b f f
+            e e 7 7 c 7 7 e e
+            f f b 7 7 7 b f f
+            e e 6 b 7 b 6 e e
+            f f 6 6 7 6 6 f f
+            e e 6 6 7 6 6 e e
+            . . c 6 7 6 c . .
+            . . . . f . . . .
+        `,
+        left: img`
+            . . e f e f e f e f .
+            . . e f e f e f e f .
+            . c 6 6 6 b 7 b 6 6 c
+            . 6 6 6 b 7 7 7 b 6 4
+            f 7 7 7 7 7 c 7 7 6 c
+            . 6 6 6 b 7 7 7 b 6 4
+            . c 6 6 6 b 7 b 6 6 c
+            . . e f e f e f e f .
+            . . e f e f e f e f .
+        `,
+        up: img`
+            . f e f e f e f e . .
+            . f e f e f e f e . .
+            c 6 6 b 7 b 6 6 6 c .
+            4 6 b 7 7 7 b 6 6 6 .
+            c 6 7 7 c 7 7 7 7 7 f
+            4 6 b 7 7 7 b 6 6 6 .
+            c 6 6 b 7 b 6 6 6 c .
+            . f e f e f e f e . .
+            . f e f e f e f e . .
+        `,
+        right: img`
+            . . . . f . . . .
+            . . c 6 7 6 c . .
+            e e 6 6 7 6 6 e e
+            f f 6 6 7 6 6 f f
+            e e 6 b 7 b 6 e e
+            f f b 7 7 7 b f f
+            e e 7 7 c 7 7 e e
+            f f b 7 7 7 b f f
+            e e 6 b 7 b 6 e e
+            f f 6 6 6 6 6 f f
+            . . c 4 c 4 c . .
+        `
+    };
 
     constructor(mov: Movement) {
-        super(Tank.image, mov);
+        super(Tank.images, mov);
         this.onUpdateInterval(4000, () => {
             this.shoot();
         });
@@ -325,38 +369,104 @@ class Tank extends Vehicle implements Enemy {
 }
 
 class AntiAircraftMissile extends Plane implements Enemy {
-    public static readonly image: Image = img`
-        . 1 . 1 .
-        . . 1 . .
-        d 2 d 2 d
-        . d d d .
-        . d d d .
-        . d d d .
-        . d d d .
-        . d d d .
-        . d d d .
-        . d d d .
-        . . d . .
-        . . d . .
-    `;
-    public static readonly image45: Image = img`
-        . . . . . . . 1 .
-        . . . . . d 2 . 1
-        . . . . . d . 2 .
-        . . . . d d d d .
-        . . . d d d . . .
-        . . d d d . . . .
-        . d d d . . . . .
-        . d d . . . . . .
+    public static readonly images: Images = {
+        down: img`
+            . 1 . 1 .
+            . . 1 . .
+            d 2 d 2 d
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . . d . .
+            . . d . .
+        `,
+        left: img`
+            . . . . . . . . . d . .
+            . . d d d d d d d 2 . 1
+            d d d d d d d d d d 1 .
+            . . d d d d d d d 2 . 1
+            . . . . . . . . . d . .
+        `,
+        up: img`
+            . . d . . . . . . . . .
+            1 . 2 d d d d d d d . .
+            . 1 d d d d d d d d d d
+            1 . 2 d d d d d d d . .
+            . . d . . . . . . . . .
+        `,
+        right: img`
+            . . d . .
+            . . d . .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            . d d d .
+            d 2 d 2 d
+            . . 1 . .
+            . 1 . 1 .
+        `
+    };
+    
+    public static readonly images45: Images = {
+        down: img`
+            . . . . . . . 1 .
+            . . . . . d 2 . 1
+            . . . . . d . 2 .
+            . . . . d d d d .
+            . . . d d d . . .
+            . . d d d . . . .
+            . d d d . . . . .
+            . d d . . . . . .
         d . . . . . . . .
-    `;
+        `,
+        left: img`
+            d . . . . . . . .
+            . d d . . . . . .
+            . d d d . . . . .
+            . . d d d . . . .
+            . . . d d d . . .
+            . . . . d d d d .
+            . . . . . d . 2 .
+            . . . . . d 2 . 1
+            . . . . . . . 1 .
+        `,
+        up: img`
+            . 1 . . . . . . .
+            1 . 2 d . . . . .
+            . 2 . d . . . . .
+            . d d d d . . . .
+            . . . d d d . . .
+            . . . . d d d . .
+            . . . . . d d d .
+            . . . . . . d d .
+            . . . . . . . . d
+        `,
+        right: img`
+            . . . . . . . . d
+            . . . . . . d d .
+            . . . . . d d d .
+            . . . . d d d . .
+            . . . d d d . . .
+            . d d d d . . . .
+            . 2 . d . . . . .
+            1 . 2 d . . . . .
+            . 1 . . . . . . .
+        `
+    };
 
     private timeout1: number = 0;
     private timeout2: number = 0;
     private timeout3: number = 0;
 
     constructor(x: number, y: number) {
-        super(AntiAircraftMissile.image, { startX: x, startY: y, vx: 0, vy: 0});
+        super(AntiAircraftMissile.images, { startX: x, startY: y, vx: 0, vy: 0});
 
         this.recalc(20);
 
@@ -377,7 +487,7 @@ class AntiAircraftMissile extends Plane implements Enemy {
         const degrees = Math.round(toDegrees(a) / 45) * 45;
         a = toRadian(degrees);
         const vc = vComponents(v, a);
-        return {image: rotate45(AntiAircraftMissile.image, AntiAircraftMissile.image45, degrees), vx: vc.vx, vy: vc.vy};
+        return {image: rotate45(AntiAircraftMissile.images, AntiAircraftMissile.images45, degrees), vx: vc.vx, vy: vc.vy};
     }
 
 
@@ -395,29 +505,35 @@ class AntiAircraftMissile extends Plane implements Enemy {
 }
 
 class AntiAircraftTower extends Building implements Enemy {
-    private static readonly image: Image = img`
-        . . . e e e e e e e e f . . .
-        . . e b b b b b b b b b f . .
-        . e b b c c c c c c c b b f .
-        e b b c c c c c c c c a b b e
-        e b c c c c c c c c c c a b f
-        e b c c c c c b c c c c a b e
-        e b c c c c b c b c c c a b f
-        e b c c c b c c c b c c a b e
-        e b c c c c b c b c c c a b f
-        e b c c c c c b c c c c a b e
-        e b c c c c c c c c c c a b f
-        e b b c c c c c c c c a b b e
-        . e b b c c c c c c c b b f .
-        . . e b b b b b b b b b f . .
-        . . . e e e e e e e e f . . .
-    `;
+    private static readonly images: Images = {
+        down: img`
+            . . . e e e e e e e e f . . .
+            . . e b b b b b b b b b f . .
+            . e b b c c c c c c c b b f .
+            e b b c c c c c c c c a b b e
+            e b c c c c c c c c c c a b f
+            e b c c c c c b c c c c a b e
+            e b c c c c b c b c c c a b f
+            e b c c c b c c c b c c a b e
+            e b c c c c b c b c c c a b f
+            e b c c c c c b c c c c a b e
+            e b c c c c c c c c c c a b f
+            e b b c c c c c c c c a b b e
+            . e b b c c c c c c c b b f .
+            . . e b b b b b b b b b f . .
+            . . . e e e e e e e e f . . .
+        `,
+        left: undefined,
+        up: undefined,
+        right: undefined
+    };
+
     private missileLoaded: boolean = true;
 
     constructor(mov: Movement) {
-        super(AntiAircraftTower.image, mov);
-        const i = AntiAircraftTower.image.clone();
-        i.drawTransparentImage(AntiAircraftMissile.image, 5, 5);
+        super(AntiAircraftTower.images, mov);
+        const i = AntiAircraftTower.images.down.clone();
+        i.drawTransparentImage(AntiAircraftMissile.images.down, 5, 5);
         this.sprite.setImage(i);
         this.onUpdateInterval(Math.randomRange(2200, 2500), () => this.shoot());
         this.onUpdateInterval(500, () => {
