@@ -199,7 +199,7 @@ abstract class BaseObject extends SpriteWrapper.Support {
         this.movement = mov;
     }
 
-    public destroy(): void {
+    public onDestroyed(): void {
         this.intervalFunctions.forEach(f => f());
     }
 
@@ -367,7 +367,7 @@ class AntiAircraftMissile extends Plane implements Enemy {
 
 
 
-    public destroy() {
+    public onDestroyed() {
         if (this.timeout1) {
             clearTimeout(this.timeout1);
         }

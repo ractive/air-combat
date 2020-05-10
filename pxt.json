@@ -6,7 +6,8 @@
         "device": "*",
         "light": "*",
         "pxt-heap": "github:jwunderl/pxt-heap#v0.0.11",
-        "pxt-interval": "github:ractive/pxt-interval#v0.0.2"
+        "pxt-interval": "github:ractive/pxt-interval#v0.0.2",
+        "pxt-spritewrapper": "github:ractive/pxt-spritewrapper#v0.0.4"
     },
     "files": [
         "main.ts",
@@ -14,8 +15,7 @@
         "player.ts",
         "powerup.ts",
         "storybook.ts",
-        "elements.ts",
-        "sprite-wrapper.ts"
+        "elements.ts"
     ],
     "testFiles": [
         "test.ts"
