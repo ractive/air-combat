@@ -770,14 +770,10 @@ class Frigate extends Ship implements Enemy {
     }
 
     private shoot(): void {
-        const dx: number = player.getSprite().x - this.sprite.x;
-        const dy: number = player.getSprite().y - this.sprite.y;
-        const a = Math.atan(dy/dx);
+        const a = angleBetween(this.sprite, player.getSprite());
 
-        const v = 30;
-        const vx = v * Math.cos(a) * Math.sign(dx);
-        const vy = v * Math.sin(a) * Math.sign(dx);
-        sprites.createProjectile(Frigate.projectileImage, vx, vy, SpriteKind.EnemyProjectile, this.sprite);
+        const v = vComponents(30, a);
+        sprites.createProjectile(Frigate.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
     }
 
     public getScore() {
