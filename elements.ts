@@ -225,14 +225,14 @@ abstract class BaseObject extends SpriteWrapper.Support {
 }
 
 abstract class BaseEnemy extends BaseObject {
-    protected remainingHits: number = 1;
-    protected hits: number = 1;
+    protected remainingHits: number = hardcore ? 1 : 2;
+    protected hits: number = hardcore ? 1 : 2;
 
     constructor(image: Image, mov: Movement, hits: number = 1) {
         super(image, mov);
 
-        this.remainingHits = hits;
-        this.hits = hits;
+        this.hits = hardcore ? hits * 2 : hits;
+        this.remainingHits = this.hits;
     }
 
     public getScore(): number {

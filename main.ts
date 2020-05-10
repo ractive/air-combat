@@ -1,3 +1,5 @@
+const hardcore: boolean = game.ask("Hardcore mode?");
+
 light.setBrightness(7);
 light.setLength(5);
 scene.setBackgroundColor(9);
