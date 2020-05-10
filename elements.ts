@@ -135,14 +135,27 @@ interface Enemy extends Element {
     gotHitBy(projectile?: Sprite): void;
 }
 
-interface Movement {
-    direction?: Direction;
-    v?: number;
-    pos?: number;
-    startX?: number;
-    startY?: number;
-    vx?: number;
-    vy?: number;
+interface RelativeMovement {
+    direction: Direction;
+    v: number;
+    pos: number;
+}
+
+interface AbsolutMovement {
+    startX: number;
+    startY: number;
+    vx: number;
+    vy: number; 
+}
+
+type Movement = AbsolutMovement | RelativeMovement;
+
+function isRelativeMovement(mov: Movement): mov is RelativeMovement {
+    return (mov as RelativeMovement).direction !== undefined;
+}
+        
+function isAbsoluteMovement(mov: Movement): mov is AbsolutMovement {
+    return (mov as AbsolutMovement).startX !== undefined;
 }
 
 abstract class BaseObject extends SpriteWrapper.Support {
@@ -151,7 +164,8 @@ abstract class BaseObject extends SpriteWrapper.Support {
 
     private static createSprite(image: Image, mov: Movement): Sprite {
         let sprite: Sprite = undefined;
-        if (mov.direction != undefined && mov.pos != undefined && mov.v != undefined) {
+        if (isRelativeMovement(mov)) {
+            //mov = mov as RelativeMovement;
             sprite = sprites.create(rotate(image, mov.direction), SpriteKind.Enemy);
 
             let x: number, y: number, vx: number, vy: number;
@@ -184,7 +198,8 @@ abstract class BaseObject extends SpriteWrapper.Support {
 
             sprite.setPosition(x, y);
             sprite.setVelocity(vx, vy);
-        } else if (mov.startX != undefined && mov.startY != undefined) {
+        } else if (isAbsoluteMovement(mov)) {
+            mov = mov as AbsolutMovement;
             sprite = sprites.create(image, SpriteKind.Enemy);
             sprite.setPosition(mov.startX, mov.startY);
             sprite.setVelocity(mov.vx, mov.vy);
@@ -364,7 +379,6 @@ class AntiAircraftMissile extends Plane implements Enemy {
         const vc = vComponents(v, a);
         return {image: rotate45(AntiAircraftMissile.image, AntiAircraftMissile.image45, degrees), vx: vc.vx, vy: vc.vy};
     }
-
 
 
     public onDestroyed() {
@@ -582,31 +596,33 @@ class GrayPlane extends Plane implements Enemy {
     }
 
     private shoot(): void {
-        let vx =  50 * Math.sign(this.sprite.vx);
-        let vy =  50 * Math.sign(this.sprite.vy);
-        let ax = 200 * Math.sign(this.sprite.vx);
-        let ay = 200 * Math.sign(this.sprite.vy);
+        if (isRelativeMovement(this.movement)) {
+            let vx =  50 * Math.sign(this.sprite.vx);
+            let vy =  50 * Math.sign(this.sprite.vy);
+            let ax = 200 * Math.sign(this.sprite.vx);
+            let ay = 200 * Math.sign(this.sprite.vy);
 
-        const projectile = sprites.createProjectile(
-            rotate(GrayPlane.projectileImage, this.movement.direction),
-            vx,
-            vy,
-            SpriteKind.EnemyProjectile,
-            this.sprite
-        );
-        projectile.ax = ax;
-        projectile.ay = ay;
+            const projectile = sprites.createProjectile(
+                rotate(GrayPlane.projectileImage, this.movement.direction),
+                vx,
+                vy,
+                SpriteKind.EnemyProjectile,
+                this.sprite
+            );
+            projectile.ax = ax;
+            projectile.ay = ay;
 
-        // Make sure the projectile is on the screen so
-        // that it does not get auto destoryed immediately
-        let x = projectile.x, y = projectile.y;
-        switch(this.movement.direction) {
-            case Direction.DOWN: y = 1; break;
-            case Direction.UP: y = scene.screenHeight(); break;
-            case Direction.LEFT: x = scene.screenWidth(); break;
-            case Direction.RIGHT: x = 0; break;
+            // Make sure the projectile is on the screen so
+            // that it does not get auto destoryed immediately
+            let x = projectile.x, y = projectile.y;
+            switch(this.movement.direction) {
+                case Direction.DOWN: y = 1; break;
+                case Direction.UP: y = scene.screenHeight(); break;
+                case Direction.LEFT: x = scene.screenWidth(); break;
+                case Direction.RIGHT: x = 0; break;
+            }
+            projectile.setPosition(x, y);
         }
-        projectile.setPosition(x, y);
     }
 
     public getScore(): number {
