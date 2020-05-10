@@ -66,6 +66,7 @@ class Player {
         . . . . . . . 4 e . . . 4 e . .
     `;
     private lastDirection: Direction = Direction.UP;
+    private lastShot: number = 0;
 
     constructor() {
         info.setLife(Player.maxLifes);
@@ -209,6 +210,11 @@ class Player {
     }
 
     public shoot() {
+        // Limit the shooting rate to not create too many sprites at once
+        if (game.runtime() - this.lastShot < 250) {
+            return;
+        }
+
         if (this.weaponLevel === 1) {
             sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 0, -100);
         } else if (this.weaponLevel >= 2) {
@@ -226,6 +232,8 @@ class Player {
             sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, -87, -50);
             sprites.createProjectileFromSprite(Player.projectileImg, this.sprite, 87, -50);
         }
+
+        this.lastShot = game.runtime();
     }
 
     public gotHit(otherSprite?: Sprite) {
