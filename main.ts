@@ -1,9 +1,14 @@
 const hardcore: boolean = game.ask("Hardcore mode?");
+const twoPlayerMode: boolean = game.ask("Two player mode?");
 
 light.setBrightness(7);
 light.setLength(5);
 scene.setBackgroundColor(9);
-const player = new Player();
+
+Players.addPlayerOne();
+if (twoPlayerMode) {
+    Players.addPlayerTwo();
+}
 
 const powerUp = new PowereUp(img`
     . . . . . . . .

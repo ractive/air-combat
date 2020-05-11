@@ -316,7 +316,7 @@ class Tank extends Vehicle implements Enemy {
     }
 
     private shoot(): void {
-        const a = angleBetween(this.sprite, player.getSprite());
+        const a = angleBetween(this.sprite, Players.randomPlayer().getSprite());
         for (let angle of [a - toRadian(15), a, a + toRadian(15)]) {
             const v = vComponents(30, angle);
             sprites.createProjectile(Tank.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
@@ -366,7 +366,7 @@ class AntiAircraftMissile extends Plane implements Enemy {
     }
 
     private recalc(v: number) {
-        const r = AntiAircraftMissile.calc(this.sprite, player.getSprite(), v);
+        const r = AntiAircraftMissile.calc(this.sprite, Players.randomPlayer().getSprite(), v);
         this.sprite.setImage(r.image);
         this.sprite.setVelocity(r.vx, r.vy);
     }
@@ -422,7 +422,7 @@ class AntiAircraftTower extends Building implements Enemy {
         this.onUpdateInterval(Math.randomRange(2200, 2500), () => this.shoot());
         this.onUpdateInterval(500, () => {
             if (this.missileLoaded) {
-                const r = AntiAircraftMissile.calc(this.sprite, player.getSprite(), 10);
+                const r = AntiAircraftMissile.calc(this.sprite, Players.randomPlayer().getSprite(), 10);
                 const i = AntiAircraftTower.image.clone();
                 const offsetX = (AntiAircraftTower.image.width - r.image.width) / 2;
                 const offsetY = (AntiAircraftTower.image.height - r.image.height) / 2;
@@ -502,14 +502,14 @@ class CombatHelicopter extends Plane implements Enemy {
         this.sprite.z = cloudZ - 10; // below the clouds
 
         this.onUpdateInterval(400, () => {
-            let a = angleBetween(this.sprite, player.getSprite());
+            let a = angleBetween(this.sprite, Players.randomPlayer().getSprite());
             // Align to 45° angles
             const degrees = Math.round(toDegrees(a) / 45) * 45;
             this.sprite.setImage(rotate45(CombatHelicopter.image, CombatHelicopter.image45, degrees));
         });
 
         this.onUpdateInterval(1000, () => {
-            const a = angleBetween(this.sprite, player.getSprite());
+            const a = angleBetween(this.sprite, Players.randomPlayer().getSprite());
             const v = vComponents(100, a);
             sprites.createProjectile(CombatHelicopter.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
         });
@@ -770,7 +770,7 @@ class Frigate extends Ship implements Enemy {
     }
 
     private shoot(): void {
-        const a = angleBetween(this.sprite, player.getSprite());
+        const a = angleBetween(this.sprite, Players.randomPlayer().getSprite());
 
         const v = vComponents(30, a);
         sprites.createProjectile(Frigate.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
@@ -897,7 +897,7 @@ class BattleShip extends Ship implements Enemy {
     }
 
     private shoot(): void {
-        const a = angleBetween(this.sprite, player.getSprite());
+        const a = angleBetween(this.sprite, Players.randomPlayer().getSprite());
         const v = vComponents(100, a);
         sprites.createProjectile(BattleShip.projectileImage, v.vx, v.vy, SpriteKind.EnemyProjectile, this.sprite);
     }

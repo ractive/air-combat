@@ -5,7 +5,7 @@ class Player {
     private weaponLevel = 1;
     private lastHit = 0;
     private readonly sprite: Sprite;
-    private readonly bombSprites: Sprite[];
+    private readonly bombSprites: Sprite[] = [];
     private static readonly bombImage: Image = img`
         . . 6 6 6 . . f
         . 6 6 6 6 6 f .
@@ -68,7 +68,7 @@ class Player {
     private lastDirection: Direction = Direction.UP;
     private lastShot: number = 0;
 
-    constructor() {
+    constructor(player: number = 1) {
         info.setLife(Player.maxLifes);
         this.showLifeLights();
 
@@ -76,52 +76,41 @@ class Player {
         this.sprite.y = 110;
         this.sprite.z = 100;
 
-        controller.moveSprite(this.sprite);
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
 
-        const bomb1 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
-        const bomb2 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
-        const bomb3 = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
-
-        bomb1.setFlag(SpriteFlag.RelativeToCamera, false);
-        bomb2.setFlag(SpriteFlag.RelativeToCamera, false);
-        bomb3.setFlag(SpriteFlag.RelativeToCamera, false);
-        bomb1.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
-        bomb2.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
-        bomb3.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
-
-        bomb1.setPosition(5, scene.screenHeight() - 5);
-        bomb2.setPosition(14, scene.screenHeight() - 5);
-        bomb3.setPosition(23, scene.screenHeight() - 5);
-
-        bomb1.z = 1000;
-        bomb2.z = 1000;
-        bomb3.z = 1000;
-
-        this.bombSprites = [bomb1, bomb2, bomb3];
+        for (let pos of [5, 14, 23]) {
+            const bomb = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
+            bomb.setFlag(SpriteFlag.RelativeToCamera, false);
+            bomb.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
+            bomb.setPosition(pos, scene.screenHeight() - 5);
+            bomb.z = 1000;
+            this.bombSprites.push(bomb);
+        }
 
         this.drawBombs();
 
-        controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+        const ctrl = player === 2 ? controller.player2 : controller.player1;
+        ctrl.moveSprite(this.sprite);
+        ctrl.A.onEvent(ControllerButtonEvent.Pressed, function () {
             if (this.bombs > 0) {
                 this.bombs -= 1;
                 this.sprite.startEffect(effects.halo, 2000);
                 scene.cameraShake(10, 2000);
-                Enemies.destroyAll(bomb1);
+                Enemies.destroyAll(this.bombSprites[0]);
                 this.drawBombs();
             }
         });
 
-        controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
+        ctrl.B.onEvent(ControllerButtonEvent.Pressed, function () {
             this.shoot();
         });
 
         game.onUpdateInterval(250, function () {
-            if (controller.B.isPressed()) {
+            if (ctrl.B.isPressed()) {
                 this.shoot();
             }
             
-            if (controller.left.isPressed() && this.lastDirection !== Direction.LEFT) {
+            if (ctrl.left.isPressed() && this.lastDirection !== Direction.LEFT) {
                 if (this.lastDirection === Direction.RIGHT) {
                     this.sprite.setImage(Player.planeStraight);
                     this.lastDirection = Direction.UP;
@@ -129,7 +118,7 @@ class Player {
                     this.sprite.setImage(Player.planeLeft);
                     this.lastDirection = Direction.LEFT;
                 }
-            } else if (controller.right.isPressed() && this.lastDirection !== Direction.RIGHT) {
+            } else if (ctrl.right.isPressed() && this.lastDirection !== Direction.RIGHT) {
                 if (this.lastDirection === Direction.LEFT) {
                     this.sprite.setImage(Player.planeStraight);
                     this.lastDirection = Direction.UP;
@@ -137,7 +126,7 @@ class Player {
                     this.sprite.setImage(Player.planeRight);
                     this.lastDirection = Direction.RIGHT;
                 }
-            } else if (!controller.left.isPressed() && !controller.right.isPressed()) {
+            } else if (!ctrl.left.isPressed() && !ctrl.right.isPressed()) {
                 this.sprite.setImage(Player.planeStraight);
                 this.lastDirection = Direction.UP;
             }
@@ -263,5 +252,29 @@ class Player {
         }
 
         this.lastHit = game.runtime();
+    }
+}
+
+namespace Players {
+    const players: Player[] = [];
+
+    export function addPlayerOne() {
+        players.push(new Player(1));
+    }
+    export function addPlayerTwo() {
+        players.push(new Player(2));
+        players[0].getSprite().x = scene.screenWidth() / 2 - 20;
+        players[1].getSprite().x = scene.screenWidth() / 2 + 20;
+    }
+
+    export function randomPlayer() {
+        if (players.length == 0) {
+            throw "No player added";
+        }
+        if (players.length == 1) {
+            return players[0];
+        } else {
+            return players[randint(0, players.length - 1)];
+        }
     }
 }
