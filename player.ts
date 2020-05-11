@@ -78,7 +78,8 @@ class Player {
 
         this.sprite.setFlag(SpriteFlag.StayInScreen, true);
 
-        for (let pos of [5, 14, 23]) {
+        const bombPositions = player === 1 ? [5, 14, 23] : [scene.screenWidth() - 5, scene.screenWidth() - 14, scene.screenWidth() - 23]
+        for (let pos of bombPositions) {
             const bomb = sprites.create(Player.bombImage, SpriteKind.BombPowerup);
             bomb.setFlag(SpriteFlag.RelativeToCamera, false);
             bomb.setFlag(SpriteFlag.Ghost | SpriteFlag.Invisible, true);
@@ -89,6 +90,7 @@ class Player {
 
         this.drawBombs();
 
+        const bomb = this.bombSprites[0];
         const ctrl = player === 2 ? controller.player2 : controller.player1;
         ctrl.moveSprite(this.sprite);
         ctrl.A.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -96,7 +98,7 @@ class Player {
                 this.bombs -= 1;
                 this.sprite.startEffect(effects.halo, 2000);
                 scene.cameraShake(10, 2000);
-                Enemies.destroyAll(this.bombSprites[0]);
+                Enemies.destroyAll(bomb);
                 this.drawBombs();
             }
         });
