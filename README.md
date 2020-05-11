@@ -7,11 +7,13 @@ Air Combat is a classic arcade shooter game for arcade.makecode.com.
 ## How to play
 
 Press and hold button B to shoot and drop bombs with A (if you collected any). In the browser, use key E or Enter for button B and Q or space for button A.
+If you play with a second player (only available in the browser), the second player can be controlled with the keys J, K, L, I and U and O.
 
 Collect the green powerups to upgrade your weapon and to get points.
 
-The hearts will give you more lifes (max. 5). If you got shot or collide with an enemy, first the weapon upgrades are destroyed before you loose a life
+The hearts will give you more lifes (max. 5). If you got shot or collide with an enemy, first the weapon upgrades are destroyed before you loose a life.
 
+When playing in "hardcore" mode, the enemies take double as many hits as normal.
 
 ## Code
 This game was developed for the arcade.makecode.com platform. When [opening it in arcade.makecode.com](https://arcade.makecode.com/#pub:github:ractive/air-combat) you can also download it to supported devices like the [PyGamer](https://www.adafruit.com/product/4242).
