@@ -1,5 +1,7 @@
 const hardcore: boolean = game.ask("Hardcore mode?");
-const twoPlayerMode: boolean = game.ask("Two player mode?");
+
+const MULTIPLAYER_ENABLED = control.ramSize() > 1024 * 400;
+const twoPlayerMode: boolean = MULTIPLAYER_ENABLED && game.ask("Two player mode?");
 
 light.setBrightness(7);
 light.setLength(5);
