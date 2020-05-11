@@ -1,5 +1,5 @@
 class Player extends SpriteWrapper.Support {
-    public static readonly maxLifes = 500;
+    private static readonly MAX_LIFES = 5;
     private hits = 0;
     private bombs = 0;
     private weaponLevel = 1;
@@ -69,7 +69,7 @@ class Player extends SpriteWrapper.Support {
 
     constructor(player: number = 1) {
         super(sprites.create(Player.planeStraight, SpriteKind.Player));
-        info.setLife(Player.maxLifes);
+        info.setLife(Player.MAX_LIFES);
         this.showLifeLights();
 
         this.sprite.y = 110;
@@ -135,7 +135,7 @@ class Player extends SpriteWrapper.Support {
     }
 
     public increaseLife() {
-        info.setLife(Math.min(info.life() + 1, Player.maxLifes));
+        info.setLife(Math.min(info.life() + 1, Player.MAX_LIFES));
         info.changeScoreBy(100);
         this.showLifeLights();
     }
