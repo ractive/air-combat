@@ -1,10 +1,9 @@
-class Player {
-    private static readonly maxLifes = 5;
+class Player extends SpriteWrapper.Support {
+    public static readonly maxLifes = 500;
     private hits = 0;
     private bombs = 0;
     private weaponLevel = 1;
     private lastHit = 0;
-    private readonly sprite: Sprite;
     private readonly bombSprites: Sprite[] = [];
     private static readonly bombImage: Image = img`
         . . 6 6 6 . . f
@@ -69,10 +68,10 @@ class Player {
     private lastShot: number = 0;
 
     constructor(player: number = 1) {
+        super(sprites.create(Player.planeStraight, SpriteKind.Player));
         info.setLife(Player.maxLifes);
         this.showLifeLights();
 
-        this.sprite = sprites.create(Player.planeStraight, SpriteKind.Player)
         this.sprite.y = 110;
         this.sprite.z = 100;
 
@@ -133,55 +132,30 @@ class Player {
                 this.lastDirection = Direction.UP;
             }
         });
+    }
 
-        sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, playerSprite) {
-            this.gotHit(enemyProjectile)
-        });
+    public increaseLife() {
+        info.setLife(Math.min(info.life() + 1, Player.maxLifes));
+        info.changeScoreBy(100);
+        this.showLifeLights();
+    }
 
-        sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
-            info.changeScoreBy(30);
-            this.weaponLevel = Math.min(this.weaponLevel + 1, 4);
-            powerUp.caught();
-        });
+    public increaseWeaponLevel() {
+        this.weaponLevel = Math.min(this.weaponLevel + 1, 4);
+    }
 
-        sprites.onOverlap(SpriteKind.BombPowerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
-            info.changeScoreBy(50);
-            this.bombs = Math.min(this.bombs + 1, 3);
-            this.drawBombs();
-            bombPowerUp.caught();
-        });
-        sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
-            info.setLife(Math.min(info.life() + 1, Player.maxLifes));
-            info.changeScoreBy(100);
-            this.showLifeLights();
-            lifePowerUp.caught();
-        });
+    public decreaseWeaponLevel() {
+        this.weaponLevel = Math.max(this.weaponLevel - 1, 0);
+    }
 
-        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
-            const enemy: Enemy = SpriteWrapper.fromSprite(enemySprite) as Enemy;
-            if (enemySprite.z < 10) {
-                // no collision with low objects like vehicles or ships
-                return;
-            }
-            this.gotHit();
-            scene.cameraShake(3, 700);
-            enemy.gotHitBy();
-            const pushedBy: number = 20;
-            switch (Math.randomRange(0, 3)) {
-                case 0:
-                    playerSprite.x += pushedBy;
-                    break;
-                case 1:
-                    playerSprite.x -= pushedBy;
-                    break;
-                case 2:
-                    playerSprite.y += pushedBy;
-                    break;
-                default:
-                    playerSprite.y -= pushedBy;
-                    break;
-            }
-        });
+    public increaseBombs() {
+        this.bombs = Math.min(this.bombs + 1, 4);
+        this.drawBombs()
+    }
+
+    public decreaseBombs() {
+        this.bombs = Math.max(this.bombs - 1, 0);
+        this.drawBombs()
     }
 
     private showLifeLights() {
@@ -262,6 +236,7 @@ namespace Players {
 
     export function addPlayerOne() {
         players.push(new Player(1));
+        init();
     }
     export function addPlayerTwo() {
         players.push(new Player(2));
@@ -278,5 +253,57 @@ namespace Players {
         } else {
             return players[randint(0, players.length - 1)];
         }
+    }
+
+    function fromSprite(sprite: Sprite): Player {
+        return SpriteWrapper.fromSprite(sprite) as Player;
+    }
+
+    function init() {
+        sprites.onOverlap(SpriteKind.EnemyProjectile, SpriteKind.Player, function (enemyProjectile, playerSprite) {
+            fromSprite(playerSprite).gotHit(enemyProjectile);
+        });
+
+        sprites.onOverlap(SpriteKind.Powerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            info.changeScoreBy(30);
+            fromSprite(playerSprite).increaseWeaponLevel();
+            powerUp.caught();
+        });
+
+        sprites.onOverlap(SpriteKind.BombPowerup, SpriteKind.Player, function (powerUpSprite, playerSprite) {
+            info.changeScoreBy(50);
+            fromSprite(playerSprite).increaseBombs();
+            bombPowerUp.caught();
+        });
+        sprites.onOverlap(SpriteKind.LifePowerup, SpriteKind.Player, function (lifeUpSprite, playerSprite) {
+            fromSprite(playerSprite).increaseLife();
+            lifePowerUp.caught();
+        });
+
+        sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Player, function (enemySprite, playerSprite) {
+            const enemy: Enemy = SpriteWrapper.fromSprite(enemySprite) as Enemy;
+            if (enemySprite.z < 10) {
+                // no collision with low objects like vehicles or ships
+                return;
+            }
+            fromSprite(playerSprite).gotHit();
+            scene.cameraShake(3, 700);
+            enemy.gotHitBy();
+            const pushedBy: number = 20;
+            switch (randint(0, 3)) {
+                case 0:
+                    playerSprite.x += pushedBy;
+                    break;
+                case 1:
+                    playerSprite.x -= pushedBy;
+                    break;
+                case 2:
+                    playerSprite.y += pushedBy;
+                    break;
+                default:
+                    playerSprite.y -= pushedBy;
+                    break;
+            }
+        });
     }
 }
