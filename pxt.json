@@ -6,7 +6,7 @@
         "device": "*",
         "light": "*",
         "pxt-heap": "github:jwunderl/pxt-heap#v0.0.11",
-        "pxt-interval": "github:ractive/pxt-interval#v0.0.2",
+        "pxt-interval": "github:ractive/pxt-interval#v0.0.3",
         "pxt-spritewrapper": "github:ractive/pxt-spritewrapper#v0.0.4"
     },
     "files": [
@@ -20,6 +20,10 @@
     "testFiles": [
         "test.ts"
     ],
+    "targetVersions": {
+        "target": "1.3.2",
+        "targetId": "arcade"
+    },
     "supportedTargets": [
         "arcade"
     ],
