@@ -1,63 +1,71 @@
 name: MakeCode Arcade Release
 
-on: 
+on:
   release:
-    types:
-      - created
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
-  build:
-
+  # One job per hardware variant. Each runs in a fresh checkout because
+  # `pxt install --hw` rewrites pxt.json for the chosen variant.
+  hardware:
     runs-on: ubuntu-latest
-
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [8.x]
-
+        include:
+          - hw: samd51
+            board: d51
+          - hw: stm32f401
+            board: f4
     steps:
-      - uses: actions/checkout@v1
-      - name: install node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: install makecode
+          node-version: 24
+      - name: Install MakeCode Arcade
         run: |
           npm install -g pxt
           pxt target arcade
-      - name: build js
+      - name: Build ${{ matrix.hw }}
         run: |
-          pxt clean
-          pxt install
-          pxt build --cloud
-      - name: build D51
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw samd51
-          pxt build --hw samd51 --cloud
-          cp ./built/binary.uf2 binary-d51.uf2
-      - name: build F4
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw stm32f401
-          pxt build --hw stm32f401 --cloud
-          cp ./built/binary.uf2 binary-f4.uf2
-      - name: build P0
-        continue-on-error: true
-        run: |
-          pxt clean
-          pxt install --hw rpi
-          pxt build --hw rpi --cloud
-          cp ./built/binary.uf2 binary-p0.uf2
-      - name: bundle all
-        run: |
-          cat binary-*.uf2 > built/arcade.uf2
-      - name: upload bundled
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pxt install --hw ${{ matrix.hw }}
+          pxt build --hw ${{ matrix.hw }} --cloud
+          cp built/binary.uf2 air-combat-${{ matrix.board }}.uf2
+      - uses: actions/upload-artifact@v7
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./built/arcade.uf2
-          asset_name: arcade.uf2
-          asset_content_type: application/octet-stream
+          name: uf2-${{ matrix.board }}
+          path: air-combat-${{ matrix.board }}.uf2
+
+  # Attach per-board files plus a combined arcade.uf2 to the release.
+  # UF2 files for different boards can be concatenated; each bootloader
+  # only flashes the blocks that carry its own family id.
+  publish:
+    needs: hardware
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: uf2-*
+          merge-multiple: true
+      - name: Bundle
+        run: |
+          ls -la *.uf2
+          cat air-combat-*.uf2 > arcade.uf2
+      - name: Upload to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            arcade.uf2 air-combat-*.uf2 \
+            --repo "${{ github.repository }}" --clobber
+      - uses: actions/upload-artifact@v7
+        with:
+          name: arcade-uf2
+          path: |
+            arcade.uf2
+            air-combat-*.uf2
